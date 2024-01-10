@@ -106,9 +106,12 @@ void funPlanetStyle    (int select);
     float angle = 0.0;
     float angle2 = 0.0;
     float angle3 = 0.0;
+    static float lastAngle = 0.0f;
+    static float lastAngle2 = 0.0f;
 
 // Tiempo actual
     float time = glfwGetTime();
+    static double lastTime = 0.0f;
 
 // Movimiento de camara
     float fovy   = 60.0;
@@ -118,6 +121,8 @@ void funPlanetStyle    (int select);
 
 
 //Selectores
+    bool turn_ovniEngine = false;
+
     int turn_emiss = 0;
     int select_planet = 1;
 
@@ -281,7 +286,7 @@ void configScene() {
 
     texCuerpoSup.diffuse   = imgCSDIFF.getTexture();
     texCuerpoSup.specular  = imgCSSPEC.getTexture();
-    //texCuerpoSup.emissive  = imgCSEMIS.getTexture();
+    texCuerpoSup.emissive  = img1.getTexture(); //Modificable con tecla C
     texCuerpoSup.normal    = 0; //imgCSNORM.getTexture();
     texCuerpoSup.shininess = 10; //32.0; //64.0;
 
@@ -293,13 +298,13 @@ void configScene() {
 
     texCircle.diffuse   = imgCircleDIFF.getTexture();
     texCircle.specular  = imgCircleSPEC.getTexture();
-    //texCircle.emissive  = imgCircleEMIS.getTexture();
+    texCircle.emissive  = img1.getTexture(); //Modificable con tecla C
     texCircle.normal    = imgCircleNORM.getTexture();
     texCircle.shininess = 10.0;
 
     texPlanet.diffuse   = imgPlanetDIFF.getTexture();
     texPlanet.specular  = imgPlanetSPEC.getTexture();
-    texPlanet.emissive  = img1.getTexture();
+    texPlanet.emissive  = img1.getTexture(); //Reaccion a tecla + -
     texPlanet.normal    = 0; //imgPlanetNORM.getTexture();
     texPlanet.shininess = 32.0;
 
@@ -343,41 +348,45 @@ void renderScene() {
 
  // Dibujamos la escena
 
-    glm::mat4 Ry = glm::rotate   (I, glm::radians(rotY), glm::vec3(0,1,0));
-    glm::mat4 Rx = glm::rotate   (I, glm::radians(rotX), glm::vec3(1,0,0));
-
-    glm::mat4 S_bg = glm::scale    (I, glm::vec3(45.0, 45.0, 45.0));
-
     // Obtén el tiempo actual
     time = glfwGetTime();
 
+    glm::mat4 M_cuerpo_sup, M_cuerpo_inf, M_circle, M_planeta, M_background, M_orbs;
+
+    glm::mat4 Rx = glm::rotate   (I, glm::radians(rotX), glm::vec3(1,0,0));
+    glm::mat4 Ry = glm::rotate   (I, glm::radians(rotY), glm::vec3(0,1,0));
+
+    glm::mat4 S_bg = glm::scale    (I, glm::vec3(40.0, 40.0, 40.0));
+
+    glm::mat4 M1 = Ry * Rx;
+
     // Calcula el ángulo de rotación basado en el tiempo
-    angle = time * glm::radians(2.0f * 80.0f); // 2 grados cada 10 milisegundos
-    angle2 = time * glm::radians(2.0f * 50.0f);
+    angle = lastAngle + (time - lastTime) * glm::radians(2.0f * 80.0f);
+    angle2 = lastAngle2 + (time - lastTime) * glm::radians(2.0f * 50.0f);
+
     angle3 = time * glm::radians(1.0f * 1.0f);
 
-    glm::mat4 R_fast = glm::rotate   (I, angle, glm::vec3(0,1,0));
-    glm::mat4 R_medium = glm::rotate   (I, -angle2, glm::vec3(0, 1, 0));
-    glm::mat4 R_medium2 = glm::rotate   (I, angle2*0.1f, glm::vec3(0, 1, 0));
-    glm::mat4 R_slow = glm::rotate   (I, angle3, glm::vec3(0, 0, 1));
+    glm::mat4 Ry_fast = glm::rotate   (I, turn_ovniEngine ? angle : lastAngle, glm::vec3(0,1,0));
+    glm::mat4 Ry_medium = glm::rotate   (I, turn_ovniEngine ? -angle2 : -lastAngle2, glm::vec3(0, 1, 0));
+    glm::mat4 Ry_medium2 = glm::rotate   (I, turn_ovniEngine ? angle2*0.1f : lastAngle2*0.1f, glm::vec3(0, 1, 0));
 
-//    drawObjectTex(cuerpo_sup, texCuerpoSup, P, V, Rx*Ry);
-//    texCuerpoSup.emissive  = turn_emiss ? imgCSEMIS.getTexture() : img1.getTexture();
+    glm::mat4 Rz_slow = glm::rotate   (I, -angle3, glm::vec3(0, 0, 1));
 
-    //drawObjectMat(aro, mluz, P, V, Rx*Ry);
+    M_cuerpo_sup = M1 * Ry_fast;
+    M_cuerpo_inf = M1 * Ry_medium;
+    M_circle = M1 * Ry_medium2;
+    M_orbs = M1 * Ry_medium;
 
-//    drawObjectTex(cuerpo_inf, texCuerpoInf, P, V, Rx*Ry);
-//    drawObjectTex(circle, texCircle, P, V, Rx*Ry);
-//    texCircle.emissive  = turn_emiss ? imgCircleEMIS.getTexture() : img1.getTexture();
+    M_background = Rz_slow * S_bg;
+
 
     // Enable back face culling //////////////////////////////////////////////////////
     glEnable(GL_CULL_FACE); // Enable culling
     glCullFace(GL_BACK);
 
-    drawObjectTex(cuerpo_sup, texCuerpoSup, P, V, Rx*Ry*R_fast);
-    texCuerpoSup.emissive  = turn_emiss ? imgCSEMIS.getTexture() : img1.getTexture();
+    drawObjectTex(cuerpo_sup, texCuerpoSup, P, V, M_cuerpo_sup);
 
-    drawObjectTex(cuerpo_inf, texCuerpoInf, P, V, Rx * Ry * R_medium);
+    drawObjectTex(cuerpo_inf, texCuerpoInf, P, V, M_cuerpo_inf);
 
     drawObjectTex(planeta, texPlanet, P, V, I);
 
@@ -388,22 +397,19 @@ void renderScene() {
     glEnable(GL_CULL_FACE); // Enable culling
     glCullFace(GL_FRONT); // Specify that front faces should be culled
 
-    drawObjectTex(background, texStars, P, V, Rx * Ry * R_slow * S_bg);
+    drawObjectTex(background, texStars, P, V, M_background);
 
-    drawObjectTex(circle, texCircle, P, V, Rx*Ry*R_medium2);
-    texCircle.emissive  = turn_emiss ? imgCircleEMIS.getTexture() : img1.getTexture();
+    drawObjectTex(circle, texCircle, P, V, M_circle);
 
     // Disable front face culling
     glDisable(GL_CULL_FACE);
 
-//    drawObjectTex(background, texStars, P, V, Rx*Ry*S_bg);
 
-    drawObjectMat(orbs, mluz, P, V, Rx * Ry * R_medium);
+    drawObjectMat(orbs, mluz, P, V, M_orbs);
 
-    //Objetos transparentes
-
+    //Objetos transparentes //////////////////////////////////////////////////////
     glDepthMask(GL_FALSE);
-    drawObjectTex(capsula, texWindow, P, V, Rx * Ry);
+    drawObjectTex(capsula, texWindow, P, V, Ry * Rx);
     glDepthMask(GL_TRUE);
     
 }
@@ -479,25 +485,23 @@ void funFramebufferSize(GLFWwindow* window, int width, int height) {
 void funKey(GLFWwindow* window, int key  , int scancode, int action, int mods) {
 
     switch(key) {
-        case GLFW_KEY_1: if (action==GLFW_PRESS) turn_emiss = !turn_emiss; break;
-        case GLFW_KEY_2: if (action==GLFW_PRESS) {
-            funPlanetStyle(select_planet);
-            select_planet++;
-            if(select_planet > PLANET_TYPES) select_planet = 0;
+        case GLFW_KEY_4:
+            if (action==GLFW_PRESS) {
+                funPlanetStyle(select_planet);
+                select_planet++;
+                if (select_planet > PLANET_TYPES) select_planet = 0;
+            }
             break;
-        }
 
 
-        case GLFW_KEY_KP_ADD: {
+        case GLFW_KEY_KP_ADD:
             incLight += incLight < 10.0f ? 0.1f : 0.0f; 
             if (incLight >= 0.2) texPlanet.emissive  = img1.getTexture();
             break;
-        }   
-        case GLFW_KEY_KP_SUBTRACT: {
+        case GLFW_KEY_KP_SUBTRACT:
             incLight -= 0.1f; 
             if (incLight < 0.2) texPlanet.emissive  = imgPlanetEMIS.getTexture();
             break;
-        } 
 
 
         case GLFW_KEY_UP:    rotX -= 5.0f;   break;
@@ -507,6 +511,23 @@ void funKey(GLFWwindow* window, int key  , int scancode, int action, int mods) {
         case GLFW_KEY_Z:
             if(mods==GLFW_MOD_SHIFT) desZ -= desZ > -24.0f ? 0.1f : 0.0f;
             else                     desZ += desZ <   5.0f ? 0.1f : 0.0f;
+            break;
+        case GLFW_KEY_X:
+            if (action==GLFW_PRESS) {
+                turn_ovniEngine = !turn_ovniEngine;
+                if (!turn_ovniEngine) {
+                    lastAngle = angle;
+                    lastAngle2 = angle2;
+                }
+                lastTime = glfwGetTime();
+            }
+            break;
+        case GLFW_KEY_C:
+            if (action==GLFW_PRESS) {
+                turn_emiss = !turn_emiss;
+                texCuerpoSup.emissive = turn_emiss ? imgCSEMIS.getTexture() : img1.getTexture();
+                texCircle.emissive = turn_emiss ? imgCircleEMIS.getTexture() : img1.getTexture();
+            }
             break;
         default:
             rotX = 0.0f;
