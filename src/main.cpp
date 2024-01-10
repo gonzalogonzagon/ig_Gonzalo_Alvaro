@@ -55,7 +55,6 @@ void funPlanetStyle    (int select);
     //Cuerpo Inferior Ovni
     Texture imgCIDIFF;
     Texture imgCISPEC;
-    Texture imgCINORM;
 
     //Base Cuerpo Superior Ovni
     Texture imgCircleDIFF;
@@ -209,7 +208,6 @@ void configScene() {
     imgCSDIFF.initTexture("resources/textures/cuerpo_sup.png");
     imgCSSPEC.initTexture("resources/textures/s.png"); //specularAO1
     imgCSEMIS.initTexture("resources/textures/cuerpo_sup_emissive_y3.png");
-    imgCSNORM.initTexture("resources/textures/normal3.png");
 
     imgCIDIFF.initTexture("resources/textures/texture.png"); //cuerpo_inf_metal
     imgCISPEC.initTexture("resources/textures/cuerpo_inf_spec.png");
