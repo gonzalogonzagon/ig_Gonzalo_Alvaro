@@ -50,11 +50,11 @@ void funPlanetStyle    (int select);
     Texture imgCSDIFF;
     Texture imgCSSPEC;
     Texture imgCSEMIS;
-    Texture imgCSNORM; ////
 
     //Cuerpo Inferior Ovni
     Texture imgCIDIFF;
     Texture imgCISPEC;
+    Texture imgCINORM;
 
     //Base Cuerpo Superior Ovni
     Texture imgCircleDIFF;
