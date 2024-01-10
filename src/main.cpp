@@ -50,7 +50,7 @@ void funPlanetStyle    (int select);
     Texture imgCSDIFF;
     Texture imgCSSPEC;
     Texture imgCSEMIS;
-    Texture imgCSEMIS2; ////
+    Texture imgCSNORM; ////
 
     //Cuerpo Inferior Ovni
     Texture imgCIDIFF;
@@ -103,6 +103,12 @@ void funPlanetStyle    (int select);
     float rotX = 0.0;
     float rotY = 0.0;
     float desZ = 0.0;
+
+    float angle = 0.0;
+    float angle2 = 0.0;
+
+// Tiempo actual
+    float time = glfwGetTime();
 
 // Movimiento de camara
     float fovy   = 60.0;
@@ -202,7 +208,7 @@ void configScene() {
     imgCSDIFF.initTexture("resources/textures/cuerpo_sup.png");
     imgCSSPEC.initTexture("resources/textures/s.png"); //specularAO1
     imgCSEMIS.initTexture("resources/textures/cuerpo_sup_emissive_y3.png");
-    //imgCSEMIS2.initTexture("resources/textures/cuerpo_sup_emissive_b.png");
+    imgCSNORM.initTexture("resources/textures/normal3.png");
 
     imgCIDIFF.initTexture("resources/textures/texture.png"); //cuerpo_inf_metal
     imgCISPEC.initTexture("resources/textures/cuerpo_inf_spec.png");
@@ -277,7 +283,7 @@ void configScene() {
     texCuerpoSup.diffuse   = imgCSDIFF.getTexture();
     texCuerpoSup.specular  = imgCSSPEC.getTexture();
     //texCuerpoSup.emissive  = imgCSEMIS.getTexture();
-    texCuerpoSup.normal    = 0;
+    texCuerpoSup.normal    = 0; //imgCSNORM.getTexture();
     texCuerpoSup.shininess = 10; //32.0; //64.0;
 
     texCuerpoInf.diffuse   = imgCIDIFF.getTexture();
@@ -341,22 +347,56 @@ void renderScene() {
     glm::mat4 Ry = glm::rotate   (I, glm::radians(rotY), glm::vec3(0,1,0));
     glm::mat4 Rx = glm::rotate   (I, glm::radians(rotX), glm::vec3(1,0,0));
 
+    glm::mat4 Splanet = glm::scale    (I, glm::vec3(45.0, 45.0, 45.0));
 
-    drawObjectTex(cuerpo_sup, texCuerpoSup, P, V, Rx*Ry);
-    texCuerpoSup.emissive  = turn_emiss ? imgCSEMIS.getTexture() : img1.getTexture();
+    // Obtén el tiempo actual
+    time = glfwGetTime();
+
+    // Calcula el ángulo de rotación basado en el tiempo
+    angle = time * glm::radians(2.0f * 100.0f); // 2 grados cada 10 milisegundos
+    angle2 = time * glm::radians(2.0f * 10.0f);
+
+    glm::mat4 R_csup = glm::rotate   (I, angle, glm::vec3(0,1,0));
+    glm::mat4 R_cinf = glm::rotate   (I, -angle2, glm::vec3(0,1,0));
+
+//    drawObjectTex(cuerpo_sup, texCuerpoSup, P, V, Rx*Ry);
+//    texCuerpoSup.emissive  = turn_emiss ? imgCSEMIS.getTexture() : img1.getTexture();
 
     //drawObjectMat(aro, mluz, P, V, Rx*Ry);
 
-    drawObjectTex(cuerpo_inf, texCuerpoInf, P, V, Rx*Ry);
-    drawObjectTex(circle, texCircle, P, V, Rx*Ry);
-    texCircle.emissive  = turn_emiss ? imgCircleEMIS.getTexture() : img1.getTexture();
+//    drawObjectTex(cuerpo_inf, texCuerpoInf, P, V, Rx*Ry);
+//    drawObjectTex(circle, texCircle, P, V, Rx*Ry);
+//    texCircle.emissive  = turn_emiss ? imgCircleEMIS.getTexture() : img1.getTexture();
+
+    // Enable back face culling //////////////////////////////////////////////////////
+    glEnable(GL_CULL_FACE); // Enable culling
+    glCullFace(GL_BACK);
+
+    drawObjectTex(cuerpo_sup, texCuerpoSup, P, V, Rx*Ry*R_csup);
+    texCuerpoSup.emissive  = turn_emiss ? imgCSEMIS.getTexture() : img1.getTexture();
+
+    drawObjectTex(cuerpo_inf, texCuerpoInf, P, V, Rx*Ry*R_cinf);
 
     drawObjectTex(planeta, texPlanet, P, V, I);
 
-    glm::mat4 Splanet = glm::scale    (I, glm::vec3(45.0, 45.0, 45.0));
+    // Disable back face culling
+    glDisable(GL_CULL_FACE);
+
+    // Enable front face culling //////////////////////////////////////////////////////
+    glEnable(GL_CULL_FACE); // Enable culling
+    glCullFace(GL_FRONT); // Specify that front faces should be culled
+
     drawObjectTex(background, texStars, P, V, Rx*Ry*Splanet);
 
-    drawObjectMat(orbs, mluz, P, V, Rx*Ry);
+    drawObjectTex(circle, texCircle, P, V, Rx*Ry);
+    texCircle.emissive  = turn_emiss ? imgCircleEMIS.getTexture() : img1.getTexture();
+
+    // Disable front face culling
+    glDisable(GL_CULL_FACE);
+
+//    drawObjectTex(background, texStars, P, V, Rx*Ry*Splanet);
+
+    drawObjectMat(orbs, mluz, P, V, Rx*Ry*R_cinf);
 
     //Objetos transparentes
 
