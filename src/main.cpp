@@ -106,6 +106,7 @@ void funPlanetStyle    (int select);
 
     float angle = 0.0;
     float angle2 = 0.0;
+    float angle3 = 0.0;
 
 // Tiempo actual
     float time = glfwGetTime();
@@ -347,17 +348,20 @@ void renderScene() {
     glm::mat4 Ry = glm::rotate   (I, glm::radians(rotY), glm::vec3(0,1,0));
     glm::mat4 Rx = glm::rotate   (I, glm::radians(rotX), glm::vec3(1,0,0));
 
-    glm::mat4 Splanet = glm::scale    (I, glm::vec3(45.0, 45.0, 45.0));
+    glm::mat4 S_bg = glm::scale    (I, glm::vec3(45.0, 45.0, 45.0));
 
     // Obtén el tiempo actual
     time = glfwGetTime();
 
     // Calcula el ángulo de rotación basado en el tiempo
-    angle = time * glm::radians(2.0f * 100.0f); // 2 grados cada 10 milisegundos
-    angle2 = time * glm::radians(2.0f * 10.0f);
+    angle = time * glm::radians(2.0f * 80.0f); // 2 grados cada 10 milisegundos
+    angle2 = time * glm::radians(2.0f * 50.0f);
+    angle3 = time * glm::radians(1.0f * 1.0f);
 
-    glm::mat4 R_csup = glm::rotate   (I, angle, glm::vec3(0,1,0));
-    glm::mat4 R_cinf = glm::rotate   (I, -angle2, glm::vec3(0,1,0));
+    glm::mat4 R_fast = glm::rotate   (I, angle, glm::vec3(0,1,0));
+    glm::mat4 R_medium = glm::rotate   (I, -angle2, glm::vec3(0, 1, 0));
+    glm::mat4 R_medium2 = glm::rotate   (I, angle2*0.1f, glm::vec3(0, 1, 0));
+    glm::mat4 R_slow = glm::rotate   (I, angle3, glm::vec3(0, 0, 1));
 
 //    drawObjectTex(cuerpo_sup, texCuerpoSup, P, V, Rx*Ry);
 //    texCuerpoSup.emissive  = turn_emiss ? imgCSEMIS.getTexture() : img1.getTexture();
@@ -372,10 +376,10 @@ void renderScene() {
     glEnable(GL_CULL_FACE); // Enable culling
     glCullFace(GL_BACK);
 
-    drawObjectTex(cuerpo_sup, texCuerpoSup, P, V, Rx*Ry*R_csup);
+    drawObjectTex(cuerpo_sup, texCuerpoSup, P, V, Rx*Ry*R_fast);
     texCuerpoSup.emissive  = turn_emiss ? imgCSEMIS.getTexture() : img1.getTexture();
 
-    drawObjectTex(cuerpo_inf, texCuerpoInf, P, V, Rx*Ry*R_cinf);
+    drawObjectTex(cuerpo_inf, texCuerpoInf, P, V, Rx * Ry * R_medium);
 
     drawObjectTex(planeta, texPlanet, P, V, I);
 
@@ -386,17 +390,17 @@ void renderScene() {
     glEnable(GL_CULL_FACE); // Enable culling
     glCullFace(GL_FRONT); // Specify that front faces should be culled
 
-    drawObjectTex(background, texStars, P, V, Rx*Ry*Splanet);
+    drawObjectTex(background, texStars, P, V, Rx * Ry * R_slow * S_bg);
 
-    drawObjectTex(circle, texCircle, P, V, Rx*Ry);
+    drawObjectTex(circle, texCircle, P, V, Rx*Ry*R_medium2);
     texCircle.emissive  = turn_emiss ? imgCircleEMIS.getTexture() : img1.getTexture();
 
     // Disable front face culling
     glDisable(GL_CULL_FACE);
 
-//    drawObjectTex(background, texStars, P, V, Rx*Ry*Splanet);
+//    drawObjectTex(background, texStars, P, V, Rx*Ry*S_bg);
 
-    drawObjectMat(orbs, mluz, P, V, Rx*Ry*R_cinf);
+    drawObjectMat(orbs, mluz, P, V, Rx * Ry * R_medium);
 
     //Objetos transparentes
 
