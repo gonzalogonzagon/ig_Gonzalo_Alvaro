@@ -109,6 +109,8 @@ void funPlanetStyle    (int select);
     float rotX = 0.0;
     float rotY = 0.0;
     float desZ = 0.0;
+    float movX = 0.0;
+    float movY = 0.0;
 
     float angle = 0.0;
     float angle2 = 0.0;
@@ -452,16 +454,17 @@ void renderScene() {
 void drawSoporte(glm::mat4 P, glm::mat4 V, glm::mat4 M) {
 
     glm::mat4 R90 = glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    glm::mat4 T_act = glm::translate(I, glm::vec3(-movX,movY,0.0));
 
-    drawObjectMat(pieza1_pata, turquesa, P, V, M);
-    drawObjectMat(pieza2_pata, cromo, P, V, M);
+    drawObjectMat(pieza1_pata, turquesa, P, V, M*T_act);
+    drawObjectMat(pieza2_pata, cromo, P, V, M*T_act);
 
-    drawObjectMat(pieza1_pata, turquesa, P, V, M*R90);
-    drawObjectMat(pieza2_pata, cromo, P, V, M*R90);
-    drawObjectMat(pieza1_pata, turquesa, P, V, M*R90*R90);
-    drawObjectMat(pieza2_pata, cromo, P, V, M*R90*R90);
-    drawObjectMat(pieza1_pata, turquesa, P, V, M*R90*R90*R90);
-    drawObjectMat(pieza2_pata, cromo, P, V, M*R90*R90*R90);
+    drawObjectMat(pieza1_pata, turquesa, P, V, M*R90*T_act);
+    drawObjectMat(pieza2_pata, cromo, P, V, M*R90*T_act);
+    drawObjectMat(pieza1_pata, turquesa, P, V, M*R90*R90*T_act);
+    drawObjectMat(pieza2_pata, cromo, P, V, M*R90*R90*T_act);
+    drawObjectMat(pieza1_pata, turquesa, P, V, M*R90*R90*R90*T_act);
+    drawObjectMat(pieza2_pata, cromo, P, V, M*R90*R90*R90*T_act);
 
 }
 
@@ -591,9 +594,22 @@ void funKey(GLFWwindow* window, int key  , int scancode, int action, int mods) {
                 rotY += 5.0f;
             }
             break;
-        case GLFW_KEY_Z:
+        case GLFW_KEY_M:
             if(mods==GLFW_MOD_SHIFT) desZ -= desZ > -24.0f ? 0.1f : 0.0f;
             else                     desZ += desZ <   5.0f ? 0.1f : 0.0f;
+            break;
+        case GLFW_KEY_Z:
+            if (mods==GLFW_MOD_SHIFT) {
+                if (mods==GLFW_MOD_SHIFT && action == GLFW_REPEAT) {
+                    movX -= movX < 0 ? 0.0 : 0.025;
+                    movY -= movX < 0 ? 0.0 : 0.025;
+                }
+            } else {
+                if (action == GLFW_REPEAT) {
+                    movX += movX > 0.9 ? 0.0 : 0.025;
+                    movY += movX > 0.9 ? 0.0 : 0.025;
+                }
+            }
             break;
         case GLFW_KEY_X:
             if (action==GLFW_PRESS) {
@@ -612,9 +628,12 @@ void funKey(GLFWwindow* window, int key  , int scancode, int action, int mods) {
                 texCircle.emissive = turn_emiss ? imgCircleEMIS.getTexture() : img1.getTexture();
             }
             break;
-        default:
+        case GLFW_KEY_0:
             rotX = 0.0f;
             rotY = 0.0f;
+            break;
+        default:
+
             break;
     }
 
