@@ -247,16 +247,20 @@ void configScene() {
     lightP[0].c2          = 0.20;
 
  // Luces focales
-    lightF[0].position    = glm::vec3(-2.0,  2.0,  5.0);
-    lightF[0].direction   = glm::vec3( 2.0, -2.0, -5.0);
-    lightF[0].ambient     = glm::vec3( 0.2,  0.2,  0.2);
-    lightF[0].diffuse     = glm::vec3( 0.9,  0.9,  0.9);
-    lightF[0].specular    = glm::vec3( 0.9,  0.9,  0.9);
-    lightF[0].innerCutOff = 10.0;
-    lightF[0].outerCutOff = lightF[0].innerCutOff + 5.0;
-    lightF[0].c0          = 1.000;
-    lightF[0].c1          = 0.090;
+    lightF[0].position    = glm::vec3(0.0, 1.0, 0.0);  // Cambia la posición en el eje y
+    lightF[0].direction   = glm::vec3(0.0, -1.0, 0.0);  // Cambia la dirección si es necesario
+
+    lightF[0].ambient  = glm::vec4(0.7, 0.7, 0.0, 1.0);  // Amarillo con componente azul apagada
+    lightF[0].diffuse  = glm::vec4(0.7, 0.7, 0.0, 1.0);
+    lightF[0].specular = glm::vec4(0.7, 0.7, 0.0, 1.0);
+
+    lightF[0].innerCutOff = 20.0;
+    lightF[0].outerCutOff = lightF[0].innerCutOff + 10.0;
+    lightF[0].c0          = 1.0;
+    lightF[0].c1          = 0.09;
     lightF[0].c2          = 0.032;
+
+
     lightF[1].position    = glm::vec3( 2.0,  2.0,  5.0);
     lightF[1].direction   = glm::vec3(-2.0, -2.0, -5.0);
     lightF[1].ambient     = glm::vec3( 0.2,  0.2,  0.2);
@@ -504,8 +508,24 @@ void funKey(GLFWwindow* window, int key  , int scancode, int action, int mods) {
             break;
 
 
-        case GLFW_KEY_UP:    rotX -= 5.0f;   break;
-        case GLFW_KEY_DOWN:  rotX += 5.0f;   break;
+        case GLFW_KEY_UP:
+            if (action==GLFW_PRESS) {
+                rotX -= 5.0f;
+                glm::mat4 Rx2 = glm::rotate(I, glm::radians(rotX), glm::vec3(1, 0, 0));
+                lightF[0].position = glm::vec3(Rx2 * glm::vec4(0.0, 1.0, 0.0, 1.0));
+                lightF[0].direction = glm::vec3(Rx2 * glm::vec4(0.0, -1.0, 0.0, 0.0));
+            }
+            break;
+
+        case GLFW_KEY_DOWN:
+            if (action==GLFW_PRESS) {
+                rotX += 5.0f;
+                glm::mat4 Rx2 = glm::rotate(I, glm::radians(rotX), glm::vec3(1, 0, 0));
+                lightF[0].position = glm::vec3(Rx2 * glm::vec4(0.0, 1.0, 0.0, 1.0));
+                lightF[0].direction = glm::vec3(Rx2 * glm::vec4(0.0, -1.0, 0.0, 0.0));
+            }
+
+            break;
         case GLFW_KEY_LEFT:  rotY -= 5.0f;   break;
         case GLFW_KEY_RIGHT: rotY += 5.0f;   break;
         case GLFW_KEY_Z:
