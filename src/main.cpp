@@ -15,6 +15,8 @@ void setLights (glm::mat4 P, glm::mat4 V);
 void drawObjectMat(Model model, Material material, glm::mat4 P, glm::mat4 V, glm::mat4 M);
 void drawObjectTex(Model model, Textures textures, glm::mat4 P, glm::mat4 V, glm::mat4 M);
 
+void drawSoporte(glm::mat4 P, glm::mat4 V, glm::mat4 M);
+
 void funFramebufferSize(GLFWwindow* window, int width, int height);
 void funKey            (GLFWwindow* window, int key  , int scancode, int action, int mods);
 void funScroll         (GLFWwindow* window, double xoffset, double yoffset);
@@ -32,11 +34,13 @@ void funPlanetStyle    (int select);
     Model sphere;
 
     Model capsula;
-    Model aro;
+    Model aro; //////
     Model cuerpo_sup;
     Model cuerpo_inf;
     Model circle;
     Model orbs;
+    Model pieza1_pata;
+    Model pieza2_pata;
 
     Model planeta;
     Model background;
@@ -84,6 +88,8 @@ void funPlanetStyle    (int select);
     Light     lightF[NLF];
 
     Material  mluz;
+    Material  turquesa;
+    Material  cromo;
 
     Textures  texWindow;
     Textures  texCuerpoSup;
@@ -202,6 +208,8 @@ void configScene() {
     cuerpo_inf.initModel("resources/models/cuerpo_inf.obj");
     circle.initModel("resources/models/circle.obj");
     orbs.initModel("resources/models/orbs.obj");
+    pieza1_pata.initModel("resources/models/pieza1_pata.obj");
+    pieza2_pata.initModel("resources/models/pieza2_pata.obj");
 
     planeta.initModel("resources/models/planeta.obj");
     background.initModel("resources/models/background.obj");
@@ -222,6 +230,7 @@ void configScene() {
     imgCircleSPEC.initTexture("resources/textures/circle_spec.png");
     imgCircleNORM.initTexture("resources/textures/circle_normal.png");
     imgCircleEMIS.initTexture("resources/textures/circle_emiss_purple.jpg");
+
 
     imgPlanetDIFF.initTexture("resources/textures/tierra.jpg");
     imgPlanetSPEC.initTexture("resources/textures/tierra_spec2.png");
@@ -278,6 +287,18 @@ void configScene() {
     mluz.specular  = glm::vec4(0.0, 0.0, 0.0, 1.0);
     mluz.emissive  = glm::vec4(1.0, 1.0, 1.0, 1.0);
     mluz.shininess = 1.0;
+
+    turquesa.ambient   = glm::vec4(0.1,	0.18725,	0.1745, 1.0);
+    turquesa.diffuse   = glm::vec4(0.396,0.74151,	0.69102, 1.0);
+    turquesa.specular  = glm::vec4(0.297254, 0.30829,	0.306678, 1.0);
+    turquesa.emissive  = glm::vec4(0.0, 0.0, 0.0, 0.0);
+    turquesa.shininess = 0.1;
+
+    cromo.ambient   = glm::vec4(0.25, 0.25, 0.25, 1.0);
+    cromo.diffuse   = glm::vec4(0.4, 0.4, 0.4, 1.0);
+    cromo.specular  = glm::vec4(0.774597, 0.774597, 0.774597, 1.0);
+    cromo.emissive  = glm::vec4(0.0, 0.0, 0.0, 0.0);
+    cromo.shininess = 0.6;
 
 
  // Texturas
@@ -355,7 +376,7 @@ void renderScene() {
     // Obtén el tiempo actual
     time = glfwGetTime();
 
-    glm::mat4 M_cuerpo_sup, M_cuerpo_inf, M_circle, M_planeta, M_background, M_orbs;
+    glm::mat4 M_cuerpo_sup, M_cuerpo_inf, M_circle, M_planeta, M_background, M_orbs, M_pata;
 
     glm::mat4 Rx = glm::rotate   (I, glm::radians(rotX), glm::vec3(1,0,0));
     glm::mat4 Ry = glm::rotate   (I, glm::radians(rotY), glm::vec3(0,1,0));
@@ -381,6 +402,8 @@ void renderScene() {
     M_circle = M1 * Ry_medium2;
     M_orbs = M1 * Ry_medium;
 
+    M_pata = M1 * Ry_medium;
+
     M_background = Rz_slow * S_bg;
 
 
@@ -391,6 +414,8 @@ void renderScene() {
     drawObjectTex(cuerpo_sup, texCuerpoSup, P, V, M_cuerpo_sup);
 
     drawObjectTex(cuerpo_inf, texCuerpoInf, P, V, M_cuerpo_inf);
+
+    drawSoporte(P, V, M_pata);
 
     drawObjectTex(planeta, texPlanet, P, V, I);
 
@@ -419,6 +444,22 @@ void renderScene() {
 }
 
 // #####################################################################################################################
+
+void drawSoporte(glm::mat4 P, glm::mat4 V, glm::mat4 M) {
+
+    glm::mat4 R90 = glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+
+    drawObjectMat(pieza1_pata, turquesa, P, V, M);
+    drawObjectMat(pieza2_pata, cromo, P, V, M);
+
+    drawObjectMat(pieza1_pata, turquesa, P, V, M*R90);
+    drawObjectMat(pieza2_pata, cromo, P, V, M*R90);
+    drawObjectMat(pieza1_pata, turquesa, P, V, M*R90*R90);
+    drawObjectMat(pieza2_pata, cromo, P, V, M*R90*R90);
+    drawObjectMat(pieza1_pata, turquesa, P, V, M*R90*R90*R90);
+    drawObjectMat(pieza2_pata, cromo, P, V, M*R90*R90*R90);
+
+}
 
 void setLights(glm::mat4 P, glm::mat4 V) {
 
@@ -509,25 +550,31 @@ void funKey(GLFWwindow* window, int key  , int scancode, int action, int mods) {
 
 
         case GLFW_KEY_UP:
-            if (action==GLFW_PRESS) {
+            if (action==GLFW_PRESS || action == GLFW_REPEAT) {
                 rotX -= 5.0f;
                 glm::mat4 Rx2 = glm::rotate(I, glm::radians(rotX), glm::vec3(1, 0, 0));
                 lightF[0].position = glm::vec3(Rx2 * glm::vec4(0.0, 1.0, 0.0, 1.0));
                 lightF[0].direction = glm::vec3(Rx2 * glm::vec4(0.0, -1.0, 0.0, 0.0));
             }
             break;
-
         case GLFW_KEY_DOWN:
-            if (action==GLFW_PRESS) {
+            if (action==GLFW_PRESS || action == GLFW_REPEAT) {
                 rotX += 5.0f;
                 glm::mat4 Rx2 = glm::rotate(I, glm::radians(rotX), glm::vec3(1, 0, 0));
                 lightF[0].position = glm::vec3(Rx2 * glm::vec4(0.0, 1.0, 0.0, 1.0));
                 lightF[0].direction = glm::vec3(Rx2 * glm::vec4(0.0, -1.0, 0.0, 0.0));
             }
-
             break;
-        case GLFW_KEY_LEFT:  rotY -= 5.0f;   break;
-        case GLFW_KEY_RIGHT: rotY += 5.0f;   break;
+        case GLFW_KEY_LEFT:
+            if (action==GLFW_PRESS || action == GLFW_REPEAT) {
+                rotY -= 5.0f;
+            }
+            break;
+        case GLFW_KEY_RIGHT:
+            if (action==GLFW_PRESS || action == GLFW_REPEAT) {
+                rotY += 5.0f;
+            }
+            break;
         case GLFW_KEY_Z:
             if(mods==GLFW_MOD_SHIFT) desZ -= desZ > -24.0f ? 0.1f : 0.0f;
             else                     desZ += desZ <   5.0f ? 0.1f : 0.0f;
