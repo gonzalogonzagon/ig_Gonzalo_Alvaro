@@ -15,6 +15,7 @@ void setLights (glm::mat4 P, glm::mat4 V);
 void drawObjectMat(Model model, Material material, glm::mat4 P, glm::mat4 V, glm::mat4 M);
 void drawObjectTex(Model model, Textures textures, glm::mat4 P, glm::mat4 V, glm::mat4 M);
 
+void drawOrbes(glm::mat4 P, glm::mat4 V, glm::mat4 M);
 void drawSoporte(glm::mat4 P, glm::mat4 V, glm::mat4 M);
 
 void funFramebufferSize(GLFWwindow* window, int width, int height);
@@ -38,7 +39,7 @@ void funPlanetStyle    (int select);
     Model cuerpo_sup;
     Model cuerpo_inf;
     Model circle;
-    Model orbs;
+    Model orbe;
     Model pieza1_pata;
     Model pieza2_pata;
 
@@ -207,7 +208,7 @@ void configScene() {
     cuerpo_sup.initModel("resources/models/cuerpo_sup.obj");
     cuerpo_inf.initModel("resources/models/cuerpo_inf.obj");
     circle.initModel("resources/models/circle.obj");
-    orbs.initModel("resources/models/orbs.obj");
+    orbe.initModel("resources/models/orbe.obj");
     pieza1_pata.initModel("resources/models/pieza1_pata.obj");
     pieza2_pata.initModel("resources/models/pieza2_pata.obj");
 
@@ -433,8 +434,7 @@ void renderScene() {
     // Disable front face culling
     glDisable(GL_CULL_FACE);
 
-
-    drawObjectMat(orbs, mluz, P, V, M_orbs);
+    drawOrbes(P, V, M_orbs );
 
     //Objetos transparentes //////////////////////////////////////////////////////
     glDepthMask(GL_FALSE);
@@ -458,6 +458,18 @@ void drawSoporte(glm::mat4 P, glm::mat4 V, glm::mat4 M) {
     drawObjectMat(pieza2_pata, cromo, P, V, M*R90*R90);
     drawObjectMat(pieza1_pata, turquesa, P, V, M*R90*R90*R90);
     drawObjectMat(pieza2_pata, cromo, P, V, M*R90*R90*R90);
+
+}
+
+void drawOrbes(glm::mat4 P, glm::mat4 V, glm::mat4 M) {
+
+    glm::mat4 R90 = glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+
+    drawObjectMat(orbe, mluz, P, V, M);
+    drawObjectMat(orbe, mluz, P, V, M*R90);
+    drawObjectMat(orbe, mluz, P, V, M*R90*R90);
+    drawObjectMat(orbe, mluz, P, V, M*R90*R90*R90);
+
 
 }
 
