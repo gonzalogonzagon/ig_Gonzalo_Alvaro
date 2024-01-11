@@ -384,6 +384,8 @@ void renderScene() {
 
     glm::mat4 S_bg = glm::scale    (I, glm::vec3(40.0, 40.0, 40.0));
 
+    glm::mat4 T_planeta = glm::translate(I, glm::vec3(0.0,0.2,0.0));
+
     glm::mat4 M1 = Ry * Rx;
 
     // Calcula el ángulo de rotación basado en el tiempo
@@ -405,6 +407,8 @@ void renderScene() {
 
     M_pata = M1 * Ry_medium;
 
+    M_planeta = T_planeta;
+
     M_background = Rz_slow * S_bg;
 
 
@@ -418,7 +422,7 @@ void renderScene() {
 
     drawSoporte(P, V, M_pata);
 
-    drawObjectTex(planeta, texPlanet, P, V, I);
+    drawObjectTex(planeta, texPlanet, P, V, M_planeta);
 
     // Disable back face culling
     glDisable(GL_CULL_FACE);
