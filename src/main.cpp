@@ -81,7 +81,7 @@ void funPlanetStyle    (int select);
 // ===================================================
 // Luces y materiales
     #define   NLD 1
-    #define   NLP 1
+    #define   NLP 5
     #define   NLF 2
     Light     lightG;
     Light     lightD[NLD];
@@ -249,16 +249,56 @@ void configScene() {
  // Luces direccionales
     lightD[0].direction = glm::vec3(0.0, -1.0, 0.0);
 
- // Luces posicionales
-    lightP[0].position    = glm::vec3(0.0, 3.0, 3.0);
-    lightP[0].ambient     = glm::vec3(0.2, 0.2, 0.2);
-    lightP[0].diffuse     = glm::vec3(0.9, 0.9, 0.9);
-    lightP[0].specular    = glm::vec3(0.9, 0.9, 0.9);
+    // Luces posicionales
+    // lightP[0].position    = glm::vec3(0, 0, 0)
+    lightP[0].position    = glm::vec3(1, 1, 2);
+    lightP[0].ambient     = glm::vec3(0, 0, 1);
+    lightP[0].diffuse     = glm::vec3(0, 0, 1);
+    lightP[0].specular    = glm::vec3(0, 0, 1);
     lightP[0].c0          = 1.00;
     lightP[0].c1          = 0.22;
     lightP[0].c2          = 0.20;
 
- // Luces focales
+
+    // lightP[1].position    = glm::vec3(-2.2, 0, 0);
+    lightP[1].position    = glm::vec3(-1.5, 1, 2.5);
+    lightP[1].ambient     = glm::vec3(0, 1, 0);
+    lightP[1].diffuse     = glm::vec3(0, 1, 0);
+    lightP[1].specular    = glm::vec3(0, 1, 0);
+    lightP[1].c0          = 1.00;
+    lightP[1].c1          = 0.22;
+    lightP[1].c2          = 0.20;
+
+    // lightP[2].position    = glm::vec3(-2.2, 0, -2.2);
+    lightP[2].position    = glm::vec3(-2, 1, -2.5);
+    lightP[2].ambient     = glm::vec3(1, 0, 0);
+    lightP[2].diffuse     = glm::vec3(1, 0, 0);
+    lightP[2].specular    = glm::vec3(1, 0, 0);
+    lightP[2].c0          = 1.00;
+    lightP[2].c1          = 0.22;
+    lightP[2].c2          = 0.20;
+
+
+    //lightP[3].position    = glm::vec3(0.0, 0.0, -2.2);
+    lightP[3].position    = glm::vec3(2, 1, -0.5);
+    lightP[3].ambient     = glm::vec3(1, 0, 1);
+    lightP[3].diffuse     = glm::vec3(1, 0, 1);
+    lightP[3].specular    = glm::vec3(1, 0, 1);
+    lightP[3].c0          = 1.00;
+    lightP[3].c1          = 0.22;
+    lightP[3].c2          = 0.20;
+
+
+    lightP[4].position    = glm::vec3(-1.1, 2.2, -1.1);
+    lightP[4].ambient     = glm::vec3(0, 1, 1);
+    lightP[4].diffuse     = glm::vec3(0, 1, 1);
+    lightP[4].specular    = glm::vec3(0, 1, 1);
+    lightP[4].c0          = 1.00;
+    lightP[4].c1          = 0.22;
+    lightP[4].c2          = 0.20;
+
+
+    // Luces focales
     lightF[0].position    = glm::vec3(0.0, 1.0, 0.0);  // Cambia la posición en el eje y
     lightF[0].direction   = glm::vec3(0.0, -1.0, 0.0);  // Cambia la dirección si es necesario
 
@@ -492,8 +532,8 @@ void setLights(glm::mat4 P, glm::mat4 V) {
     for(int i=0; i<NLF; i++) shaders.setLight("ulightF["+toString(i)+"]",lightF[i]);
 
     for(int i=0; i<NLP; i++) {
-        glm::mat4 M = glm::translate(I,lightP[i].position) * glm::scale(I,glm::vec3(0.1));
-        drawObjectMat(sphere, mluz, P, V, M);
+        glm::mat4 M = glm::translate(I,lightP[i].position) /* glm::scale(I,glm::vec3(0.1))*/;
+        drawObjectMat(orbe, mluz, P, V, M);
     }
 
     for(int i=0; i<NLF; i++) {
@@ -587,11 +627,17 @@ void funKey(GLFWwindow* window, int key  , int scancode, int action, int mods) {
         case GLFW_KEY_LEFT:
             if (action==GLFW_PRESS || action == GLFW_REPEAT) {
                 rotY -= 5.0f;
+                glm::mat4 Ry2 = glm::rotate(I, glm::radians(rotY), glm::vec3(1, 0, 0));
+                lightF[0].position = glm::vec3(Ry2 * glm::vec4(0.0, 1.0, 0.0, 1.0));
+                lightF[0].direction = glm::vec3(Ry2 * glm::vec4(0.0, -1.0, 0.0, 0.0));
             }
             break;
         case GLFW_KEY_RIGHT:
             if (action==GLFW_PRESS || action == GLFW_REPEAT) {
                 rotY += 5.0f;
+                glm::mat4 Ry2 = glm::rotate(I, glm::radians(rotY), glm::vec3(1, 0, 0));
+                lightF[0].position = glm::vec3(Ry2 * glm::vec4(0.0, 1.0, 0.0, 1.0));
+                lightF[0].direction = glm::vec3(Ry2 * glm::vec4(0.0, -1.0, 0.0, 0.0));
             }
             break;
         case GLFW_KEY_M:
