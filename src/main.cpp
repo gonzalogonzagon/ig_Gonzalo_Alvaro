@@ -612,32 +612,72 @@ void funKey(GLFWwindow* window, int key  , int scancode, int action, int mods) {
             if (action==GLFW_PRESS || action == GLFW_REPEAT) {
                 rotX -= 5.0f;
                 glm::mat4 Rx2 = glm::rotate(I, glm::radians(rotX), glm::vec3(1, 0, 0));
-                lightF[0].position = glm::vec3(Rx2 * glm::vec4(0.0, 1.0, 0.0, 1.0));
-                lightF[0].direction = glm::vec3(Rx2 * glm::vec4(0.0, -1.0, 0.0, 0.0));
+                glm::mat4 Ry2 = glm::rotate   (I, glm::radians(rotY), glm::vec3(0,1,0));
+
+                lightF[0].position = glm::vec3(Ry2  * Rx2 * glm::vec4(0.0, 1.0, 0.0, 1.0));
+                lightF[0].direction = glm::vec3(Ry2 * Rx2 * glm::vec4(0.0, -1.0, 0.0, 0.0));
+
+
+                lightP[0].position = glm::vec3( Ry2 * Rx2 * glm::vec4(1, 1, 2,1));
+                lightP[1].position = glm::vec3( Ry2 * Rx2 * glm::vec4(-1.5, 1, 2.5,1.0));
+                lightP[2].position = glm::vec3( Ry2 * Rx2 *  glm::vec4(-2, 1, -2.5,1.0));
+                lightP[3].position = glm::vec3( Ry2 * Rx2 *  glm::vec4(2, 1, -0.5,1));
+                lightP[4].position = glm::vec3( Ry2 * Rx2 *  glm::vec4(-1.1, 2.2, -1.1,1.0));
+
             }
             break;
         case GLFW_KEY_DOWN:
             if (action==GLFW_PRESS || action == GLFW_REPEAT) {
                 rotX += 5.0f;
                 glm::mat4 Rx2 = glm::rotate(I, glm::radians(rotX), glm::vec3(1, 0, 0));
-                lightF[0].position = glm::vec3(Rx2 * glm::vec4(0.0, 1.0, 0.0, 1.0));
-                lightF[0].direction = glm::vec3(Rx2 * glm::vec4(0.0, -1.0, 0.0, 0.0));
+                glm::mat4 Ry2 = glm::rotate   (I, glm::radians(rotY), glm::vec3(0,1,0));
+
+                lightF[0].position = glm::vec3(Ry2 * Rx2* glm::vec4(0.0, 1.0, 0.0, 1.0));
+                lightF[0].direction = glm::vec3(Ry2 * Rx2* glm::vec4(0.0, -1.0, 0.0, 0.0));
+
+                lightP[0].position = glm::vec3( Ry2 * Rx2 * glm::vec4(1, 1, 2,1));
+                lightP[1].position = glm::vec3( Ry2 * Rx2 *  glm::vec4(-1.5, 1, 2.5,1.0));
+                lightP[2].position = glm::vec3( Ry2 * Rx2 *  glm::vec4(-2, 1, -2.5,1.0));
+                lightP[3].position = glm::vec3( Ry2 * Rx2 *  glm::vec4(2, 1, -0.5,1));
+                lightP[4].position = glm::vec3( Ry2 * Rx2 * glm::vec4(-1.1, 2.2, -1.1,1.0));
+
+
             }
             break;
         case GLFW_KEY_LEFT:
             if (action==GLFW_PRESS || action == GLFW_REPEAT) {
                 rotY -= 5.0f;
-                glm::mat4 Ry2 = glm::rotate(I, glm::radians(rotY), glm::vec3(1, 0, 0));
-                lightF[0].position = glm::vec3(Ry2 * glm::vec4(0.0, 1.0, 0.0, 1.0));
-                lightF[0].direction = glm::vec3(Ry2 * glm::vec4(0.0, -1.0, 0.0, 0.0));
+                glm::mat4 Rx2 = glm::rotate(I, glm::radians(rotX), glm::vec3(1, 0, 0));
+                glm::mat4 Ry2 = glm::rotate   (I, glm::radians(rotY), glm::vec3(0,1,0));
+                lightF[0].position = glm::vec3(Ry2 * Rx2 * glm::vec4(0.0, 1.0, 0.0, 1.0));
+                lightF[0].direction = glm::vec3(Ry2 * Rx2*  glm::vec4(0.0, -1.0, 0.0, 0.0));
+
+
+                lightP[0].position = glm::vec3( Ry2 * Rx2 * glm::vec4(1, 1, 2,1));
+                lightP[1].position = glm::vec3( Ry2 * Rx2* glm::vec4(-1.5, 1, 2.5,1.0));
+                lightP[2].position = glm::vec3( Ry2 * Rx2* glm::vec4(-2, 1, -2.5,1.0));
+                lightP[3].position = glm::vec3( Ry2 * Rx2* glm::vec4(2, 1, -0.5,1));
+                lightP[4].position = glm::vec3( Ry2 * Rx2* glm::vec4(-1.1, 2.2, -1.1,1.0));
+
+
             }
             break;
         case GLFW_KEY_RIGHT:
             if (action==GLFW_PRESS || action == GLFW_REPEAT) {
                 rotY += 5.0f;
-                glm::mat4 Ry2 = glm::rotate(I, glm::radians(rotY), glm::vec3(1, 0, 0));
-                lightF[0].position = glm::vec3(Ry2 * glm::vec4(0.0, 1.0, 0.0, 1.0));
-                lightF[0].direction = glm::vec3(Ry2 * glm::vec4(0.0, -1.0, 0.0, 0.0));
+                glm::mat4 Rx2 = glm::rotate(I, glm::radians(rotX), glm::vec3(1, 0, 0));
+                glm::mat4 Ry2 = glm::rotate   (I, glm::radians(rotY), glm::vec3(0,1,0));
+                lightF[0].position = glm::vec3(Ry2 * Rx2* glm::vec4(0.0, 1.0, 0.0, 1.0));
+                lightF[0].direction = glm::vec3(Ry2 * Rx2* glm::vec4(0.0, -1.0, 0.0, 0.0));
+
+
+                lightP[0].position = glm::vec3( Ry2 * Rx2* glm::vec4(1, 1, 2,1));
+                lightP[1].position = glm::vec3( Ry2 * Rx2* glm::vec4(-1.5, 1, 2.5,1.0));
+                lightP[2].position = glm::vec3( Ry2 * Rx2* glm::vec4(-2, 1, -2.5,1.0));
+                lightP[3].position = glm::vec3( Ry2 * Rx2* glm::vec4(2, 1, -0.5,1));
+                lightP[4].position = glm::vec3( Ry2 * Rx2* glm::vec4(-1.1, 2.2, -1.1,1.0));
+
+
             }
             break;
         case GLFW_KEY_M:
