@@ -124,6 +124,7 @@ void funPlanetStyle    (int select);
 
 // Movimiento de camara
     float fovy   = 60.0;
+    float dist   = 30.0;
     static float alphaX =  0.0;
     static float alphaY =  0.0;
     float incLight = 1.0;
@@ -414,17 +415,14 @@ void renderScene() {
 
  // Matriz P
     float nplane =  0.1;
-    float fplane = 64.0; //42.0;
+    float fplane = 100.0; //42.0;
     float aspect = (float)w/(float)h;
     glm::mat4 P = glm::perspective(glm::radians(fovy), aspect, nplane, fplane);
 
  // Matriz V
-    float x = 10.0f*glm::cos(glm::radians(alphaY))*glm::sin(glm::radians(alphaX));
-    float y = 10.0f*glm::sin(glm::radians(alphaY));
-    float z = 10.0f*glm::cos(glm::radians(alphaY))*glm::cos(glm::radians(alphaX));
-    float x_fp = glm::cos(glm::radians(alphaY))*glm::sin(glm::radians(alphaX));
-    float y_fp = glm::sin(glm::radians(alphaY));
-    float z_fp = glm::cos(glm::radians(alphaY))*glm::cos(glm::radians(alphaX));
+    float x = dist*glm::cos(glm::radians(alphaY))*glm::sin(glm::radians(alphaX));
+    float y = dist*glm::sin(glm::radians(alphaY));
+    float z = dist*glm::cos(glm::radians(alphaY))*glm::cos(glm::radians(alphaX));
 
     glm::vec3 direction (glm::radians(alphaY)*glm::cos(glm::radians(alphaX)),
                          glm::radians(alphaY),
@@ -771,8 +769,14 @@ void funKey(GLFWwindow* window, int key  , int scancode, int action, int mods) {
 
 void funScroll(GLFWwindow* window, double xoffset, double yoffset) {
 
-    if(yoffset>0) fovy -= fovy>5.0f ? 5.0f : 0.0f;
-    if(yoffset<0) fovy += fovy<180.0f ? 5.0f : 0.0f;
+    if(yoffset>0) {
+        //fovy -= fovy>5.0f ? 5.0f : 0.0f;
+        dist -= dist>20.0 ? 5.0  : 0.0;
+    }
+    if(yoffset<0) {
+        //fovy += fovy<180.0f ? 5.0f : 0.0f;
+        dist += dist<80.0   ? 5.0  : 0.0;
+    }
 
 }
 
@@ -782,7 +786,7 @@ void funCursorPos(GLFWwindow* window, double xpos, double ypos) {
 
     if(glfwGetMouseButton(window,GLFW_MOUSE_BUTTON_LEFT)==GLFW_RELEASE) return;
 
-    float limY = 180.0;
+    float limY = 89.0;
     alphaX = 90.0*(2.0*xpos/(float)w - 1.0);
     alphaY = 90.0*(1.0 - 2.0*ypos/(float)h);
     if(alphaY<-limY) alphaY = -limY;
