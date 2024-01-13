@@ -131,6 +131,7 @@ void funPlanetStyle    (int select);
 
 //Selectores
     bool turn_ovniEngine = false;
+    bool turn_firstP = false;
 
     int turn_emiss = 0;
     int select_planet = 1;
@@ -395,6 +396,22 @@ void renderScene() {
  // Indicamos los shaders a utilizar
     shaders.useShaders();
 
+// Obtén el tiempo actual
+    time = glfwGetTime();
+
+ // Uso y manipulación de matrices
+    glm::mat4 M_camara, M_cuerpo_sup, M_cuerpo_inf, M_circle, M_planeta, M_background, M_orbs, M_pata;
+
+
+    glm::mat4 Rx = glm::rotate   (I, glm::radians(rotX), glm::vec3(1,0,0));
+    glm::mat4 Ry = glm::rotate   (I, glm::radians(rotY), glm::vec3(0,1,0));
+
+    glm::mat4 S_bg = glm::scale    (I, glm::vec3(40.0, 40.0, 40.0));
+
+    glm::mat4 T_planeta = glm::translate(I, glm::vec3(0.0,0.2,0.0));
+
+    glm::mat4 M1 = Ry * Rx;
+
  // Matriz P
     float nplane =  0.1;
     float fplane = 64.0; //42.0;
@@ -405,10 +422,36 @@ void renderScene() {
     float x = 10.0f*glm::cos(glm::radians(alphaY))*glm::sin(glm::radians(alphaX));
     float y = 10.0f*glm::sin(glm::radians(alphaY));
     float z = 10.0f*glm::cos(glm::radians(alphaY))*glm::cos(glm::radians(alphaX));
-    glm::vec3 eye   (  x,   y,   z);
-    glm::vec3 center(0.0, 0.0,  0.0);
+    float x_fp = glm::cos(glm::radians(alphaY))*glm::sin(glm::radians(alphaX));
+    float y_fp = glm::sin(glm::radians(alphaY));
+    float z_fp = glm::cos(glm::radians(alphaY))*glm::cos(glm::radians(alphaX));
+
+    glm::vec3 direction (glm::radians(alphaY)*glm::cos(glm::radians(alphaX)),
+                         glm::radians(alphaY),
+                         glm::radians(alphaY)*glm::sin(glm::radians(alphaX)));
+
+    direction = glm::normalize(direction);
+
+    glm::vec3 eye   (  x,   y,   z);  //Posición de la cámara en el mundo
+    glm::vec3 center(0.0, 0.0,  0.0); //Dirección donde la cámara mira
     glm::vec3 up    (0.0, 1.0,  0.0);
-    glm::mat4 V = glm::lookAt(eye, center, up);
+
+    glm::vec3 eye_firstPerson   (  0,   3.0,   0.0);  //Posición de la cámara en el mundo
+    //glm::vec3 center_firstPerson(0.0, 2.0,  1.0); //Dirección donde la cámara mira
+    //glm::vec3 up_firstPerson    (0.0, 1.0,  0.0);
+
+    glm::vec3 center_firstPerson = eye + direction;
+
+    // Calcular el vector "right"
+    glm::vec3 right = glm::cross(direction, glm::vec3(0.0f, 1.0f, 0.0f));
+
+    // Calcular el vector "up_firstPerson"
+    glm::vec3 up_firstPerson = glm::vec3(Ry * Rx * glm::vec4(up, 1.0));
+
+    eye_firstPerson = glm::vec3(Ry * Rx * glm::vec4(eye_firstPerson, 1.0));
+
+
+    glm::mat4 V = turn_firstP ? glm::lookAt(eye_firstPerson, center_firstPerson, up_firstPerson) : glm::lookAt(eye, center, up);
     shaders.setVec3("ueye",eye);
 
  // Fijamos las luces
@@ -416,19 +459,9 @@ void renderScene() {
 
  // Dibujamos la escena
 
-    // Obtén el tiempo actual
-    time = glfwGetTime();
 
-    glm::mat4 M_cuerpo_sup, M_cuerpo_inf, M_circle, M_planeta, M_background, M_orbs, M_pata;
 
-    glm::mat4 Rx = glm::rotate   (I, glm::radians(rotX), glm::vec3(1,0,0));
-    glm::mat4 Ry = glm::rotate   (I, glm::radians(rotY), glm::vec3(0,1,0));
 
-    glm::mat4 S_bg = glm::scale    (I, glm::vec3(40.0, 40.0, 40.0));
-
-    glm::mat4 T_planeta = glm::translate(I, glm::vec3(0.0,0.2,0.0));
-
-    glm::mat4 M1 = Ry * Rx;
 
     // Calcula el ángulo de rotación basado en el tiempo
     angle = lastAngle + (time - lastTime) * glm::radians(2.0f * 80.0f);
@@ -597,16 +630,25 @@ void funKey(GLFWwindow* window, int key  , int scancode, int action, int mods) {
             }
             break;
 
+        case GLFW_KEY_3:
+            if (action==GLFW_PRESS) {
+                turn_firstP = !turn_firstP;
+            }
+            break;
+
 
         case GLFW_KEY_KP_ADD:
-            incLight += incLight < 10.0f ? 0.1f : 0.0f; 
-            if (incLight >= 0.2) texPlanet.emissive  = img1.getTexture();
+            if (action == GLFW_PRESS) {
+                incLight += incLight < 10.0f ? 0.1f : 0.0f;
+                if (incLight >= 0.2) texPlanet.emissive  = img1.getTexture();
+            }
             break;
         case GLFW_KEY_KP_SUBTRACT:
-            incLight -= 0.1f; 
-            if (incLight < 0.2) texPlanet.emissive  = imgPlanetEMIS.getTexture();
+            if (action == GLFW_PRESS) {
+                incLight -= 0.1f;
+                if (incLight < 0.2) texPlanet.emissive  = imgPlanetEMIS.getTexture();
+            }
             break;
-
 
         case GLFW_KEY_UP:
             if (action==GLFW_PRESS || action == GLFW_REPEAT) {
@@ -687,13 +729,13 @@ void funKey(GLFWwindow* window, int key  , int scancode, int action, int mods) {
         case GLFW_KEY_Z:
             if (mods==GLFW_MOD_SHIFT) {
                 if (mods==GLFW_MOD_SHIFT && action == GLFW_REPEAT) {
-                    movX -= movX < 0 ? 0.0 : 0.025;
-                    movY -= movX < 0 ? 0.0 : 0.025;
+                    movY -= movX <= 0 ? 0.0 : 0.025;
+                    movX -= movX <= 0 ? 0.0 : 0.025;
                 }
             } else {
                 if (action == GLFW_REPEAT) {
-                    movX += movX > 0.9 ? 0.0 : 0.025;
-                    movY += movX > 0.9 ? 0.0 : 0.025;
+                    movX += movX >= 0.9 ? 0.0 : 0.025;
+                    movY += movX >= 0.9 ? 0.0 : 0.025;
                 }
             }
             break;
@@ -740,7 +782,7 @@ void funCursorPos(GLFWwindow* window, double xpos, double ypos) {
 
     if(glfwGetMouseButton(window,GLFW_MOUSE_BUTTON_LEFT)==GLFW_RELEASE) return;
 
-    float limY = 89.0;
+    float limY = 180.0;
     alphaX = 90.0*(2.0*xpos/(float)w - 1.0);
     alphaY = 90.0*(1.0 - 2.0*ypos/(float)h);
     if(alphaY<-limY) alphaY = -limY;
