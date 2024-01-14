@@ -150,6 +150,10 @@ void funPlanetStyle    (int select);
     static float alphaY =  0.0;
     static float lastX  =  0.0; ///
     static float lastY  =  0.0; ///
+
+// Luz
+    // Apagar o Encender las luces
+    float onoff=1.0;
     
 
 
@@ -300,9 +304,9 @@ void configScene() {
     // Luces posicionales
     // lightP[0].position    = glm::vec3(0, 0, 0)
     lightP[0].position    = glm::vec3(1, 1, 2);
-    lightP[0].ambient     = glm::vec3(0, 0, 1);
-    lightP[0].diffuse     = glm::vec3(0, 0, 1);
-    lightP[0].specular    = glm::vec3(0, 0, 1);
+    lightP[0].ambient     = onoff * glm::vec3(0, 0, 1);
+    lightP[0].diffuse     = onoff * glm::vec3(0, 0, 1);
+    lightP[0].specular    = onoff * glm::vec3(0, 0, 1);
     lightP[0].c0          = 1.00;
     lightP[0].c1          = 0.22;
     lightP[0].c2          = 0.20;
@@ -310,18 +314,18 @@ void configScene() {
 
     // lightP[1].position    = glm::vec3(-2.2, 0, 0);
     lightP[1].position    = glm::vec3(-1.5, 1, 2.5);
-    lightP[1].ambient     = glm::vec3(0, 1, 0);
-    lightP[1].diffuse     = glm::vec3(0, 1, 0);
-    lightP[1].specular    = glm::vec3(0, 1, 0);
+    lightP[1].ambient     = onoff * glm::vec3(0, 1, 0);
+    lightP[1].diffuse     = onoff * glm::vec3(0, 1, 0);
+    lightP[1].specular    = onoff * glm::vec3(0, 1, 0);
     lightP[1].c0          = 1.00;
     lightP[1].c1          = 0.22;
     lightP[1].c2          = 0.20;
 
     // lightP[2].position    = glm::vec3(-2.2, 0, -2.2);
     lightP[2].position    = glm::vec3(-2, 1, -2.5);
-    lightP[2].ambient     = glm::vec3(1, 0, 0);
-    lightP[2].diffuse     = glm::vec3(1, 0, 0);
-    lightP[2].specular    = glm::vec3(1, 0, 0);
+    lightP[2].ambient     = onoff * glm::vec3(1, 0, 0);
+    lightP[2].diffuse     = onoff * glm::vec3(1, 0, 0);
+    lightP[2].specular    = onoff * glm::vec3(1, 0, 0);
     lightP[2].c0          = 1.00;
     lightP[2].c1          = 0.22;
     lightP[2].c2          = 0.20;
@@ -329,18 +333,18 @@ void configScene() {
 
     //lightP[3].position    = glm::vec3(0.0, 0.0, -2.2);
     lightP[3].position    = glm::vec3(2, 1, -0.5);
-    lightP[3].ambient     = glm::vec3(1, 0, 1);
-    lightP[3].diffuse     = glm::vec3(1, 0, 1);
-    lightP[3].specular    = glm::vec3(1, 0, 1);
+    lightP[3].ambient     = onoff * glm::vec3(1, 0, 1);
+    lightP[3].diffuse     = onoff * glm::vec3(1, 0, 1);
+    lightP[3].specular    = onoff * glm::vec3(1, 0, 1);
     lightP[3].c0          = 1.00;
     lightP[3].c1          = 0.22;
     lightP[3].c2          = 0.20;
 
 
     lightP[4].position    = glm::vec3(-1.1, 2.2, -1.1);
-    lightP[4].ambient     = glm::vec3(0, 1, 1);
-    lightP[4].diffuse     = glm::vec3(0, 1, 1);
-    lightP[4].specular    = glm::vec3(0, 1, 1);
+    lightP[4].ambient     = onoff * glm::vec3(0, 1, 1);
+    lightP[4].diffuse     = onoff * glm::vec3(0, 1, 1);
+    lightP[4].specular    = onoff * glm::vec3(0, 1, 1);
     lightP[4].c0          = 1.00;
     lightP[4].c1          = 0.22;
     lightP[4].c2          = 0.20;
@@ -349,11 +353,9 @@ void configScene() {
     // Luces focales
     lightF[0].position    = glm::vec3(0.0, 1.0, 0.0);  // Cambia la posición en el eje y
     lightF[0].direction   = glm::vec3(0.0, -1.0, 0.0);  // Cambia la dirección si es necesario
-
-    lightF[0].ambient  = glm::vec4(0.7, 0.7, 0.0, 1.0);  // Amarillo con componente azul apagada
-    lightF[0].diffuse  = glm::vec4(0.7, 0.7, 0.0, 1.0);
-    lightF[0].specular = glm::vec4(0.7, 0.7, 0.0, 1.0);
-
+    lightF[0].ambient  = onoff * glm::vec4(0.7, 0.7, 0.0, 1.0);  // Amarillo
+    lightF[0].diffuse  = onoff * glm::vec4(0.7, 0.7, 0.0, 1.0);
+    lightF[0].specular = onoff * glm::vec4(0.7, 0.7, 0.0, 1.0);
     lightF[0].innerCutOff = 20.0;
     lightF[0].outerCutOff = lightF[0].innerCutOff + 10.0;
     lightF[0].c0          = 1.0;
@@ -856,6 +858,43 @@ void funKey(GLFWwindow* window, int key  , int scancode, int action, int mods) {
                 turn_emiss = !turn_emiss;
                 texCuerpoSup.emissive = turn_emiss ? imgCSEMIS.getTexture() : img1.getTexture();
                 texCircle.emissive = turn_emiss ? imgCircleEMIS.getTexture() : img1.getTexture();
+            }
+            break;
+        case GLFW_KEY_F:
+            if (action == GLFW_PRESS) {
+                if(onoff==0.0f){
+                    onoff=1.0f;
+                }else{
+                    onoff=0.0f;
+                }
+
+
+                lightP[0].ambient     = onoff * glm::vec3(0, 0, 1);
+                lightP[0].diffuse     = onoff * glm::vec3(0, 0, 1);
+                lightP[0].specular    = onoff * glm::vec3(0, 0, 1);
+
+                lightP[1].ambient     = onoff * glm::vec3(0, 1, 0);
+                lightP[1].diffuse     = onoff * glm::vec3(0, 1, 0);
+                lightP[1].specular    = onoff * glm::vec3(0, 1, 0);
+
+                lightP[2].ambient     = onoff * glm::vec3(1, 0, 0);
+                lightP[2].diffuse     = onoff * glm::vec3(1, 0, 0);
+                lightP[2].specular    = onoff * glm::vec3(1, 0, 0);
+
+                lightP[3].ambient     = onoff * glm::vec3(1, 0, 1);
+                lightP[3].diffuse     = onoff * glm::vec3(1, 0, 1);
+                lightP[3].specular    = onoff * glm::vec3(1, 0, 1);
+
+                lightP[4].ambient     = onoff * glm::vec3(0, 1, 1);
+                lightP[4].diffuse     = onoff * glm::vec3(0, 1, 1);
+                lightP[4].specular    = onoff * glm::vec3(0, 1, 1);
+
+
+                lightF[0].ambient  = onoff * glm::vec4(0.7, 0.7, 0.0, 1.0);  // Amarillo con componente azul apagada
+                lightF[0].diffuse  = onoff * glm::vec4(0.7, 0.7, 0.0, 1.0);
+                lightF[0].specular = onoff * glm::vec4(0.7, 0.7, 0.0, 1.0);
+
+
             }
             break;
         case GLFW_KEY_M:
