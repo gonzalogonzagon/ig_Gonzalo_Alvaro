@@ -31,7 +31,6 @@ void funPlanetStyle    (int select);
     Shaders shaders;
 
 // Modelos
-
     Model sphere;
 
     Model capsula;
@@ -77,7 +76,6 @@ void funPlanetStyle    (int select);
     Texture imgStarMapDIFF;
     Texture imgStarMapEMIS;
 
-
 // ===================================================
 // Luces y materiales
     #define   NLD 1
@@ -99,43 +97,88 @@ void funPlanetStyle    (int select);
     Textures  texPlanet;
     Textures  texStars;
 
-
 // ===================================================
 // Viewport
     int w = 500;
     int h = 500;
 
-// Animaciones
+// Acumuladores, contadores, etc
+    //Giro modelo Ovni sobre el eje X
     float rotX = 0.0;
+    //Giro modelo Ovni sobre el eje Y
     float rotY = 0.0;
-    float desZ = 0.0;
+    float desZ = 0.0; ///////
+    //Movilidad tren de aterrizaje Ovni sobre el eje X
     float movX = 0.0;
+    //Movilidad tren de aterrizaje Ovni sobre el eje Y
     float movY = 0.0;
 
+    //Movimiento del modelo Ovni sobre el planeta respecto al eje X
+    float ws_mov = 0.0;
+    //Movimiento del modelo Ovni sobre el planeta respecto al eje Z
+    float ad_mov = 0.0;
+    //Altura del modelo Ovni sobre el planeta respecto al eje Y
+    float altura_Ovni = 0.0;
+
+    //Angulo de rotación 1 : Velocidad = Alta
     float angle = 0.0;
+    //Angulo de rotación 2 : Velocidad = Media
     float angle2 = 0.0;
+    //Angulo de rotación 3 : Velocidad = Baja
     float angle3 = 0.0;
-    static float lastAngle = 0.0f;
-    static float lastAngle2 = 0.0f;
+    //Acumulador que almacena el ultimo angulo de rotación 1
+    float lastAngle = 0.0;
+    //Acumulador que almacena el ultimo angulo de rotación 2
+    float lastAngle2 = 0.0f;
+
+    //Angulo de rotación de la capsula
+    float ang_caps = 0.0;
 
 // Tiempo actual
     float time = glfwGetTime();
-    static double lastTime = 0.0f;
+// Tiempo anterior
+    static float lastTime = 0.0;
 
 // Movimiento de camara
+    //Campo de vision
     float fovy   = 60.0;
+    //Distancia de la camara al origen sobre el eje Z
     float dist   = 30.0;
+    //Ángulo de rotación de la camara sobre el eje X
     static float alphaX =  0.0;
+    //Ángulo de rotación de la camara sobre el eje Y
     static float alphaY =  0.0;
-    float incLight = 1.0;
+    static float lastX  =  0.0; ///
+    static float lastY  =  0.0; ///
+    
 
 
 //Selectores
+    //Activar o desactivar arranque del motor del ovni
     bool turn_ovniEngine = false;
+    //Activar o desactivar modo primera persona
     bool turn_firstP = false;
+    //Activar o desactivar mapa emisivo de los modelos seleccionados
+    bool turn_emiss = false;
+    //OPCIONES PLANETA
+    int select_planet = 1; 
 
-    int turn_emiss = 0;
-    int select_planet = 1;
+    //Intensidad de la luz
+    float incLight = 1.0;
+
+// Matrices
+    //Eje de coordenadas X del mundo
+    glm::vec3 X_axis = glm::vec3(1, 0, 0);
+    //Eje de coordenadas Y del mundo
+    glm::vec3 Y_axis = glm::vec3(0, 1, 0);
+    //Eje de coordenadas Z del mundo
+    glm::vec3 Z_axis = glm::vec3(0, 0, 1);
+    
+    //Rotación de 90 grados sobre el eje Y
+    glm::mat4 RY_90 = glm::rotate(I, glm::radians(90.0f), Y_axis);
+
+    //Declaración de matrices
+    glm::mat4 M_camara, M_capsula, M_cuerpo_sup, M_cuerpo_inf, M_circle, M_planeta, M_background, M_orbs, M_pata;
 
 
 // #####################################################################################################################
@@ -151,7 +194,7 @@ int main() {
 
  // Creamos la ventana
     GLFWwindow* window;
-    window = glfwCreateWindow(w, h, "Sesion 7", nullptr, nullptr);
+    window = glfwCreateWindow(w, h, "Project UFO", nullptr, nullptr);
     if(!window) {
         glfwTerminate();
         return -1;
@@ -208,7 +251,7 @@ void configScene() {
     sphere.initModel("resources/models/sphere.obj");
 
     capsula.initModel("resources/models/capsula.obj");
-    aro.initModel("resources/models/aro.obj");
+    aro.initModel("resources/models/aro.obj"); ////////
     cuerpo_sup.initModel("resources/models/cuerpo_sup.obj");
     cuerpo_inf.initModel("resources/models/cuerpo_inf.obj");
     circle.initModel("resources/models/circle.obj");
@@ -250,6 +293,9 @@ void configScene() {
 
  // Luces direccionales
     lightD[0].direction = glm::vec3(0.0, -1.0, 0.0);
+    lightD[0].ambient   = incLight * glm::vec3(0.1,  0.1, 0.1);
+    lightD[0].diffuse   = incLight * glm::vec3(0.7,  0.7, 0.7);
+    lightD[0].specular  = incLight * glm::vec3(0.7,  0.7, 0.7);
 
     // Luces posicionales
     // lightP[0].position    = glm::vec3(0, 0, 0)
@@ -401,17 +447,41 @@ void renderScene() {
     time = glfwGetTime();
 
  // Uso y manipulación de matrices
-    glm::mat4 M_camara, M_cuerpo_sup, M_cuerpo_inf, M_circle, M_planeta, M_background, M_orbs, M_pata;
 
-
-    glm::mat4 Rx = glm::rotate   (I, glm::radians(rotX), glm::vec3(1,0,0));
-    glm::mat4 Ry = glm::rotate   (I, glm::radians(rotY), glm::vec3(0,1,0));
+    glm::mat4 Rx = glm::rotate   (I, glm::radians(rotX), X_axis);
+    glm::mat4 Ry = glm::rotate   (I, glm::radians(rotY), Y_axis);
 
     glm::mat4 S_bg = glm::scale    (I, glm::vec3(40.0, 40.0, 40.0));
 
     glm::mat4 T_planeta = glm::translate(I, glm::vec3(0.0,0.2,0.0));
+    glm::mat4 T_alturaOvni = glm::translate(I, glm::vec3(0.0,altura_Ovni,0.0));
 
-    glm::mat4 M1 = Ry * Rx;
+    // Punto alrededor del cual quieres rotar
+    glm::vec3 point = glm::vec3(0, -13.8, 0);
+    glm::vec3 origin = glm::vec3(1, 2.8, 0);
+
+    glm::mat4 rotateCaps = glm::rotate(I, glm::radians(ang_caps), Z_axis);
+
+    glm::mat4 translateC = glm::translate(I, -origin);
+    glm::mat4 translateBackC = glm::translate(I, origin);
+
+    // Trasladar el sistema de coordenadas
+    glm::mat4 translate = glm::translate(I, -point);
+
+    // Realizar la rotación
+    glm::mat4 rotateX = glm::rotate(I, glm::radians(ws_mov), X_axis);
+    glm::mat4 rotateZ = glm::rotate(I, glm::radians(ad_mov), Z_axis);
+
+    // Trasladar el sistema de coordenadas de vuelta
+    glm::mat4 translateBack = glm::translate(I, point);
+
+    // Combinar las transformaciones
+    glm::mat4 M_transform = translateBack * rotateZ * rotateX * translate;
+
+    glm::mat4 M1 = M_transform * T_alturaOvni * Ry * Rx;
+
+    glm::mat4 M_op_caps = translateBackC * rotateCaps * translateC;
+
 
  // Matriz P
     float nplane =  0.1;
@@ -444,9 +514,9 @@ void renderScene() {
     glm::vec3 right = glm::cross(direction, glm::vec3(0.0f, 1.0f, 0.0f));
 
     // Calcular el vector "up_firstPerson"
-    glm::vec3 up_firstPerson = glm::vec3(Ry * Rx * glm::vec4(up, 1.0));
+    glm::vec3 up_firstPerson = glm::vec3(M_transform * Ry * Rx * glm::vec4(up, 1.0));
 
-    eye_firstPerson = glm::vec3(Ry * Rx * glm::vec4(eye_firstPerson, 1.0));
+    eye_firstPerson = glm::vec3(M_transform * Ry * Rx * glm::vec4(eye_firstPerson, 1.0));
 
 
     glm::mat4 V = turn_firstP ? glm::lookAt(eye_firstPerson, center_firstPerson, up_firstPerson) : glm::lookAt(eye, center, up);
@@ -467,12 +537,13 @@ void renderScene() {
 
     angle3 = time * glm::radians(1.0f * 1.0f);
 
-    glm::mat4 Ry_fast = glm::rotate   (I, turn_ovniEngine ? angle : lastAngle, glm::vec3(0,1,0));
-    glm::mat4 Ry_medium = glm::rotate   (I, turn_ovniEngine ? -angle2 : -lastAngle2, glm::vec3(0, 1, 0));
-    glm::mat4 Ry_medium2 = glm::rotate   (I, turn_ovniEngine ? angle2*0.1f : lastAngle2*0.1f, glm::vec3(0, 1, 0));
+    glm::mat4 Ry_fast = glm::rotate   (I, turn_ovniEngine ? angle : lastAngle, Y_axis);
+    glm::mat4 Ry_medium = glm::rotate   (I, turn_ovniEngine ? -angle2 : -lastAngle2, Y_axis);
+    glm::mat4 Ry_medium2 = glm::rotate   (I, turn_ovniEngine ? angle2*0.1f : lastAngle2*0.1f, Y_axis);
 
-    glm::mat4 Rz_slow = glm::rotate   (I, -angle3, glm::vec3(0, 0, 1));
+    glm::mat4 Rz_slow = glm::rotate   (I, -angle3, Z_axis);
 
+    M_capsula = M1 * M_op_caps;
     M_cuerpo_sup = M1 * Ry_fast;
     M_cuerpo_inf = M1 * Ry_medium;
     M_circle = M1 * Ry_medium2;
@@ -493,6 +564,8 @@ void renderScene() {
 
     drawObjectTex(cuerpo_inf, texCuerpoInf, P, V, M_cuerpo_inf);
 
+    drawOrbes(P, V, M_orbs);
+
     drawSoporte(P, V, M_pata);
 
     drawObjectTex(planeta, texPlanet, P, V, M_planeta);
@@ -511,11 +584,10 @@ void renderScene() {
     // Disable front face culling
     glDisable(GL_CULL_FACE);
 
-    drawOrbes(P, V, M_orbs );
 
     //Objetos transparentes //////////////////////////////////////////////////////
     glDepthMask(GL_FALSE);
-    drawObjectTex(capsula, texWindow, P, V, Ry * Rx);
+    drawObjectTex(capsula, texWindow, P, V, M_capsula);
     glDepthMask(GL_TRUE);
     
 }
@@ -524,38 +596,31 @@ void renderScene() {
 
 void drawSoporte(glm::mat4 P, glm::mat4 V, glm::mat4 M) {
 
-    glm::mat4 R90 = glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
     glm::mat4 T_act = glm::translate(I, glm::vec3(-movX,movY,0.0));
 
     drawObjectMat(pieza1_pata, turquesa, P, V, M*T_act);
     drawObjectMat(pieza2_pata, cromo, P, V, M*T_act);
 
-    drawObjectMat(pieza1_pata, turquesa, P, V, M*R90*T_act);
-    drawObjectMat(pieza2_pata, cromo, P, V, M*R90*T_act);
-    drawObjectMat(pieza1_pata, turquesa, P, V, M*R90*R90*T_act);
-    drawObjectMat(pieza2_pata, cromo, P, V, M*R90*R90*T_act);
-    drawObjectMat(pieza1_pata, turquesa, P, V, M*R90*R90*R90*T_act);
-    drawObjectMat(pieza2_pata, cromo, P, V, M*R90*R90*R90*T_act);
+    drawObjectMat(pieza1_pata, turquesa, P, V, M * RY_90 * T_act);
+    drawObjectMat(pieza2_pata, cromo, P, V, M * RY_90 * T_act);
+    drawObjectMat(pieza1_pata, turquesa, P, V, M * RY_90 * RY_90 * T_act);
+    drawObjectMat(pieza2_pata, cromo, P, V, M * RY_90 * RY_90 * T_act);
+    drawObjectMat(pieza1_pata, turquesa, P, V, M * RY_90 * RY_90 * RY_90 * T_act);
+    drawObjectMat(pieza2_pata, cromo, P, V, M * RY_90 * RY_90 * RY_90 * T_act);
 
 }
 
 void drawOrbes(glm::mat4 P, glm::mat4 V, glm::mat4 M) {
 
-    glm::mat4 R90 = glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-
     drawObjectMat(orbe, mluz, P, V, M);
-    drawObjectMat(orbe, mluz, P, V, M*R90);
-    drawObjectMat(orbe, mluz, P, V, M*R90*R90);
-    drawObjectMat(orbe, mluz, P, V, M*R90*R90*R90);
+    drawObjectMat(orbe, mluz, P, V, M * RY_90);
+    drawObjectMat(orbe, mluz, P, V, M * RY_90 * RY_90);
+    drawObjectMat(orbe, mluz, P, V, M * RY_90 * RY_90 * RY_90);
 
 
 }
 
 void setLights(glm::mat4 P, glm::mat4 V) {
-
-    lightD[0].ambient   = incLight * glm::vec3(0.1,  0.1, 0.1);
-    lightD[0].diffuse   = incLight * glm::vec3(0.7,  0.7, 0.7);
-    lightD[0].specular  = incLight * glm::vec3(0.7,  0.7, 0.7);
 
     shaders.setLight("ulightG",lightG);
     for(int i=0; i<NLD; i++) shaders.setLight("ulightD["+toString(i)+"]",lightD[i]);
@@ -639,20 +704,28 @@ void funKey(GLFWwindow* window, int key  , int scancode, int action, int mods) {
             if (action == GLFW_PRESS) {
                 incLight += incLight < 10.0f ? 0.1f : 0.0f;
                 if (incLight >= 0.2) texPlanet.emissive  = img1.getTexture();
+
+                lightD[0].ambient   = incLight * glm::vec3(0.1,  0.1, 0.1);
+                lightD[0].diffuse   = incLight * glm::vec3(0.7,  0.7, 0.7);
+                lightD[0].specular  = incLight * glm::vec3(0.7,  0.7, 0.7);
             }
             break;
         case GLFW_KEY_KP_SUBTRACT:
             if (action == GLFW_PRESS) {
                 incLight -= 0.1f;
                 if (incLight < 0.2) texPlanet.emissive  = imgPlanetEMIS.getTexture();
+
+                lightD[0].ambient   = incLight * glm::vec3(0.1,  0.1, 0.1);
+                lightD[0].diffuse   = incLight * glm::vec3(0.7,  0.7, 0.7);
+                lightD[0].specular  = incLight * glm::vec3(0.7,  0.7, 0.7);
             }
             break;
 
         case GLFW_KEY_UP:
             if (action==GLFW_PRESS || action == GLFW_REPEAT) {
                 rotX -= 5.0f;
-                glm::mat4 Rx2 = glm::rotate(I, glm::radians(rotX), glm::vec3(1, 0, 0));
-                glm::mat4 Ry2 = glm::rotate   (I, glm::radians(rotY), glm::vec3(0,1,0));
+                glm::mat4 Rx2 = glm::rotate(I, glm::radians(rotX), X_axis);
+                glm::mat4 Ry2 = glm::rotate   (I, glm::radians(rotY), Y_axis);
 
                 lightF[0].position = glm::vec3(Ry2  * Rx2 * glm::vec4(0.0, 1.0, 0.0, 1.0));
                 lightF[0].direction = glm::vec3(Ry2 * Rx2 * glm::vec4(0.0, -1.0, 0.0, 0.0));
@@ -669,8 +742,8 @@ void funKey(GLFWwindow* window, int key  , int scancode, int action, int mods) {
         case GLFW_KEY_DOWN:
             if (action==GLFW_PRESS || action == GLFW_REPEAT) {
                 rotX += 5.0f;
-                glm::mat4 Rx2 = glm::rotate(I, glm::radians(rotX), glm::vec3(1, 0, 0));
-                glm::mat4 Ry2 = glm::rotate   (I, glm::radians(rotY), glm::vec3(0,1,0));
+                glm::mat4 Rx2 = glm::rotate(I, glm::radians(rotX), X_axis);
+                glm::mat4 Ry2 = glm::rotate   (I, glm::radians(rotY), Y_axis);
 
                 lightF[0].position = glm::vec3(Ry2 * Rx2* glm::vec4(0.0, 1.0, 0.0, 1.0));
                 lightF[0].direction = glm::vec3(Ry2 * Rx2* glm::vec4(0.0, -1.0, 0.0, 0.0));
@@ -687,8 +760,8 @@ void funKey(GLFWwindow* window, int key  , int scancode, int action, int mods) {
         case GLFW_KEY_LEFT:
             if (action==GLFW_PRESS || action == GLFW_REPEAT) {
                 rotY -= 5.0f;
-                glm::mat4 Rx2 = glm::rotate(I, glm::radians(rotX), glm::vec3(1, 0, 0));
-                glm::mat4 Ry2 = glm::rotate   (I, glm::radians(rotY), glm::vec3(0,1,0));
+                glm::mat4 Rx2 = glm::rotate(I, glm::radians(rotX), X_axis);
+                glm::mat4 Ry2 = glm::rotate   (I, glm::radians(rotY), Y_axis);
                 lightF[0].position = glm::vec3(Ry2 * Rx2 * glm::vec4(0.0, 1.0, 0.0, 1.0));
                 lightF[0].direction = glm::vec3(Ry2 * Rx2*  glm::vec4(0.0, -1.0, 0.0, 0.0));
 
@@ -705,8 +778,8 @@ void funKey(GLFWwindow* window, int key  , int scancode, int action, int mods) {
         case GLFW_KEY_RIGHT:
             if (action==GLFW_PRESS || action == GLFW_REPEAT) {
                 rotY += 5.0f;
-                glm::mat4 Rx2 = glm::rotate(I, glm::radians(rotX), glm::vec3(1, 0, 0));
-                glm::mat4 Ry2 = glm::rotate   (I, glm::radians(rotY), glm::vec3(0,1,0));
+                glm::mat4 Rx2 = glm::rotate(I, glm::radians(rotX), X_axis);
+                glm::mat4 Ry2 = glm::rotate   (I, glm::radians(rotY), Y_axis);
                 lightF[0].position = glm::vec3(Ry2 * Rx2* glm::vec4(0.0, 1.0, 0.0, 1.0));
                 lightF[0].direction = glm::vec3(Ry2 * Rx2* glm::vec4(0.0, -1.0, 0.0, 0.0));
 
@@ -720,7 +793,38 @@ void funKey(GLFWwindow* window, int key  , int scancode, int action, int mods) {
 
             }
             break;
-        case GLFW_KEY_M:
+
+        case GLFW_KEY_W:
+            if (action==GLFW_PRESS || action == GLFW_REPEAT) {
+                ws_mov += 5.0f;
+            }
+            break;
+        case GLFW_KEY_S:
+            if (action==GLFW_PRESS || action == GLFW_REPEAT) {
+                ws_mov -= 5.0f;
+            }
+            break;
+        case GLFW_KEY_A:
+            if (action==GLFW_PRESS || action == GLFW_REPEAT) {
+                ad_mov += 5.0f;
+            }
+            break;
+        case GLFW_KEY_D:
+            if (action==GLFW_PRESS || action == GLFW_REPEAT) {
+                ad_mov -= 5.0f;
+            }
+            break;
+        case GLFW_KEY_Q:
+            if (action==GLFW_PRESS || action == GLFW_REPEAT) {
+                altura_Ovni += 0.1;
+            }
+            break;
+        case GLFW_KEY_E:
+            if (action==GLFW_PRESS || action == GLFW_REPEAT) {
+                altura_Ovni -= 0.1;
+            }
+            break;
+        case GLFW_KEY_J:
             if(mods==GLFW_MOD_SHIFT) desZ -= desZ > -24.0f ? 0.1f : 0.0f;
             else                     desZ += desZ <   5.0f ? 0.1f : 0.0f;
             break;
@@ -754,6 +858,16 @@ void funKey(GLFWwindow* window, int key  , int scancode, int action, int mods) {
                 texCircle.emissive = turn_emiss ? imgCircleEMIS.getTexture() : img1.getTexture();
             }
             break;
+        case GLFW_KEY_M:
+            if (action==GLFW_PRESS || action == GLFW_REPEAT) {
+                ang_caps += 5.0f;
+            }
+            break;
+        case GLFW_KEY_N:
+            if (action==GLFW_PRESS || action == GLFW_REPEAT) {
+                ang_caps -= 5.0f;
+            }
+            break;
         case GLFW_KEY_0:
             rotX = 0.0f;
             rotY = 0.0f;
@@ -771,7 +885,7 @@ void funScroll(GLFWwindow* window, double xoffset, double yoffset) {
 
     if(yoffset>0) {
         //fovy -= fovy>5.0f ? 5.0f : 0.0f;
-        dist -= dist>20.0 ? 5.0  : 0.0;
+        dist -= dist>10.0 ? 5.0  : 0.0;
     }
     if(yoffset<0) {
         //fovy += fovy<180.0f ? 5.0f : 0.0f;
@@ -784,11 +898,15 @@ void funScroll(GLFWwindow* window, double xoffset, double yoffset) {
 
 void funCursorPos(GLFWwindow* window, double xpos, double ypos) {
 
-    if(glfwGetMouseButton(window,GLFW_MOUSE_BUTTON_LEFT)==GLFW_RELEASE) return;
+    if(glfwGetMouseButton(window,GLFW_MOUSE_BUTTON_LEFT)==GLFW_RELEASE) {
+        lastX = xpos;
+        lastY = ypos;
+        return;
+    }
 
     float limY = 89.0;
-    alphaX = 90.0*(2.0*xpos/(float)w - 1.0);
-    alphaY = 90.0*(1.0 - 2.0*ypos/(float)h);
+    alphaX = 360.0*(2.0*(xpos)/(float)w - 1.0);
+    alphaY = 360.0*(1.0 - 2.0*(ypos)/(float)h);
     if(alphaY<-limY) alphaY = -limY;
     if(alphaY> limY) alphaY =  limY;
 
