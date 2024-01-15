@@ -153,12 +153,6 @@ void funPlanetStyle    (int select);
     static float lastX  =  0.0; ///
     static float lastY  =  0.0; ///
 
-// Luz
-    // Apagar o Encender las luces
-    float onoff=1.0;
-    
-
-
 //Selectores
     //Activar o desactivar arranque del motor del ovni
     bool turn_ovniEngine = false;
@@ -171,6 +165,8 @@ void funPlanetStyle    (int select);
 
     //Intensidad de la luz
     float incLight = 1.0;
+    // Apagar o Encender las luces
+    float onoff = 0.0;
 
 // Matrices y vectores
     //Eje de coordenadas X del mundo
@@ -367,8 +363,8 @@ void configScene() {
     lightF[0].ambient  = onoff * glm::vec4(0.7, 0.7, 0.0, 1.0);  // Amarillo
     lightF[0].diffuse  = onoff * glm::vec4(0.7, 0.7, 0.0, 1.0);
     lightF[0].specular = onoff * glm::vec4(0.7, 0.7, 0.0, 1.0);
-    lightF[0].innerCutOff = 20.0;
-    lightF[0].outerCutOff = lightF[0].innerCutOff + 10.0;
+    lightF[0].innerCutOff = 40.0; //20.0;
+    lightF[0].outerCutOff = lightF[0].innerCutOff + 1.0; //10.0;
     lightF[0].c0          = 1.0;
     lightF[0].c1          = 0.09;
     lightF[0].c2          = 0.032;
@@ -493,8 +489,8 @@ void renderScene() {
 
 
  // Matriz P
-    float nplane =  0.1;
-    float fplane = 150.0; //42.0;
+    float nplane =   0.1;
+    float fplane = 150.0;
     float aspect = (float)w/(float)h;
     glm::mat4 P = glm::perspective(glm::radians(fovy), aspect, nplane, fplane);
 
@@ -665,10 +661,10 @@ void setLights(glm::mat4 P, glm::mat4 V) {
     for(int i=0; i<NLP; i++) shaders.setLight("ulightP["+toString(i)+"]",lightP[i]);
     for(int i=0; i<NLF; i++) shaders.setLight("ulightF["+toString(i)+"]",lightF[i]);
 
-    for(int i=0; i<NLP; i++) {
-        glm::mat4 M = glm::translate(I,lightP[i].position) /* glm::scale(I,glm::vec3(0.1))*/;
-        drawObjectMat(orbe, mluz, P, V, M);
-    }
+//    for(int i=0; i<NLP; i++) {
+//        glm::mat4 M = glm::translate(I,lightP[i].position) /* glm::scale(I,glm::vec3(0.1))*/;
+//        drawObjectMat(orbe, mluz, P, V, M);
+//    }
 
     for(int i=0; i<NLF; i++) {
         glm::mat4 M = glm::translate(I,lightF[i].position) * glm::scale(I,glm::vec3(0.025));
@@ -749,7 +745,7 @@ void funKey(GLFWwindow* window, int key, int scancode, int action, int mods) {
 
         case GLFW_KEY_KP_ADD:
             if (action == GLFW_PRESS || action == GLFW_REPEAT) {
-                incLight += incLight < 10.0f ? 0.1f : 0.0f;
+                incLight += incLight < 10.0 ? 0.1 : 0.0;
                 if (incLight >= 0.2) texPlanet.emissive  = img1.getTexture();
 
                 lightD[0].ambient   = incLight * glm::vec3(0.1,  0.1, 0.1);
@@ -759,7 +755,7 @@ void funKey(GLFWwindow* window, int key, int scancode, int action, int mods) {
             break;
         case GLFW_KEY_KP_SUBTRACT:
             if (action == GLFW_PRESS || action == GLFW_REPEAT) {
-                incLight -= 0.1f;
+                incLight -= 0.1;
                 if (incLight < 0.2) texPlanet.emissive  = imgPlanetEMIS.getTexture();
 
                 lightD[0].ambient   = incLight * glm::vec3(0.1,  0.1, 0.1);
@@ -770,25 +766,25 @@ void funKey(GLFWwindow* window, int key, int scancode, int action, int mods) {
 
         case GLFW_KEY_UP:
             if (action==GLFW_PRESS || action == GLFW_REPEAT) {
-                rotX -= 5.0f;
+                rotX -= 5.0;
                 if (rotX < 0) rotX = 355;
             }
             break;
         case GLFW_KEY_DOWN:
             if (action==GLFW_PRESS || action == GLFW_REPEAT) {
-                rotX += 5.0f;
+                rotX += 5.0;
                 if (rotX > 355) rotX = 0;
             }
             break;
         case GLFW_KEY_LEFT:
             if (action==GLFW_PRESS || action == GLFW_REPEAT) {
-                rotY -= 5.0f;
+                rotY -= 5.0;
                 if (rotY < 0) rotY = 355;
             }
             break;
         case GLFW_KEY_RIGHT:
             if (action==GLFW_PRESS || action == GLFW_REPEAT) {
-                rotY += 5.0f;
+                rotY += 5.0;
                 if (rotY > 355) rotY = 0;
             }
             break;
@@ -859,12 +855,10 @@ void funKey(GLFWwindow* window, int key, int scancode, int action, int mods) {
             break;
         case GLFW_KEY_F:
             if (action == GLFW_PRESS) {
-                if(onoff==0.0f){
-                    onoff=1.0f;
-                }else{
-                    onoff=0.0f;
-                }
-
+                if(onoff==0.0)
+                    onoff=1.0;
+                else
+                    onoff=0.0;
 
                 lightP[0].ambient     = onoff * glm::vec3(0, 0, 1);
                 lightP[0].diffuse     = onoff * glm::vec3(0, 0, 1);
@@ -887,9 +881,9 @@ void funKey(GLFWwindow* window, int key, int scancode, int action, int mods) {
                 lightP[4].specular    = onoff * glm::vec3(0, 1, 1);
 
 
-                lightF[0].ambient  = onoff * glm::vec4(0.7, 0.7, 0.0, 1.0);  // Amarillo con componente azul apagada
-                lightF[0].diffuse  = onoff * glm::vec4(0.7, 0.7, 0.0, 1.0);
-                lightF[0].specular = onoff * glm::vec4(0.7, 0.7, 0.0, 1.0);
+                lightF[0].ambient     = onoff * glm::vec4(0.7, 0.7, 0.0, 1.0);
+                lightF[0].diffuse     = onoff * glm::vec4(0.7, 0.7, 0.0, 1.0);
+                lightF[0].specular    = onoff * glm::vec4(0.7, 0.7, 0.0, 1.0);
 
 
             }
@@ -928,7 +922,7 @@ void funScroll(GLFWwindow* window, double xoffset, double yoffset) {
     }
     if(yoffset<0) {
         //fovy += fovy<180.0f ? 5.0f : 0.0f;
-        dist += dist<1000.0   ? 5.0  : 0.0;
+        dist += dist<100.0   ? 5.0  : 0.0;
     }
 
 }
