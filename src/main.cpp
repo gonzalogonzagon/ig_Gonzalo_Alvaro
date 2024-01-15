@@ -507,17 +507,18 @@ void renderScene() {
                          glm::radians(alphaY),
                          glm::radians(alphaY)*glm::sin(glm::radians(alphaX)));
 
-    direction = glm::normalize(direction);
+    //direction = glm::normalize(direction);
 
     glm::vec3 eye   (  x,   y,   z);  //Posición de la cámara en el mundo
     glm::vec3 center(0.0, 0.0,  0.0); //Dirección donde la cámara mira
     glm::vec3 up    (0.0, 1.0,  0.0);
 
-    glm::vec3 eye_firstPerson   (  0,   3.0,   0.0);  //Posición de la cámara en el mundo
+    glm::vec3 eye_firstPerson   (  0,   3.5,   0.0);  //Posición de la cámara en el mundo
     //glm::vec3 center_firstPerson(0.0, 2.0,  1.0); //Dirección donde la cámara mira
     //glm::vec3 up_firstPerson    (0.0, 1.0,  0.0);
 
-    glm::vec3 center_firstPerson = eye + direction;
+    //glm::vec3 center_firstPerson = eye + direction;
+    glm::vec3 center_firstPerson = M_transform * Ry * Rx * glm::vec4(eye, 1.0);
 
     // Calcular el vector "right"
     glm::vec3 right = glm::cross(direction, glm::vec3(0.0f, 1.0f, 0.0f));
@@ -729,7 +730,7 @@ void funFramebufferSize(GLFWwindow* window, int width, int height) {
 
 // #####################################################################################################################
 
-void funKey(GLFWwindow* window, int key  , int scancode, int action, int mods) {
+void funKey(GLFWwindow* window, int key, int scancode, int action, int mods) {
 
     switch(key) {
         case GLFW_KEY_4:
@@ -741,14 +742,13 @@ void funKey(GLFWwindow* window, int key  , int scancode, int action, int mods) {
             break;
 
         case GLFW_KEY_3:
-            if (action==GLFW_PRESS) {
+            if (action == GLFW_PRESS) {
                 turn_firstP = !turn_firstP;
             }
             break;
 
-
         case GLFW_KEY_KP_ADD:
-            if (action == GLFW_PRESS) {
+            if (action == GLFW_PRESS || action == GLFW_REPEAT) {
                 incLight += incLight < 10.0f ? 0.1f : 0.0f;
                 if (incLight >= 0.2) texPlanet.emissive  = img1.getTexture();
 
@@ -758,7 +758,7 @@ void funKey(GLFWwindow* window, int key  , int scancode, int action, int mods) {
             }
             break;
         case GLFW_KEY_KP_SUBTRACT:
-            if (action == GLFW_PRESS) {
+            if (action == GLFW_PRESS || action == GLFW_REPEAT) {
                 incLight -= 0.1f;
                 if (incLight < 0.2) texPlanet.emissive  = imgPlanetEMIS.getTexture();
 
@@ -771,120 +771,72 @@ void funKey(GLFWwindow* window, int key  , int scancode, int action, int mods) {
         case GLFW_KEY_UP:
             if (action==GLFW_PRESS || action == GLFW_REPEAT) {
                 rotX -= 5.0f;
-//                glm::mat4 Rx2 = glm::rotate(I, glm::radians(rotX), X_axis);
-//                glm::mat4 Ry2 = glm::rotate   (I, glm::radians(rotY), Y_axis);
-
-//                lightF[0].position = glm::vec3(Ry2  * Rx2 * glm::vec4(0.0, 1.0, 0.0, 1.0));
-//                lightF[0].direction = glm::vec3(Ry2 * Rx2 * glm::vec4(0.0, -1.0, 0.0, 0.0));
-//
-//
-//                lightP[0].position = glm::vec3( Ry2 * Rx2 * glm::vec4(1, 1, 2,1));
-//                lightP[1].position = glm::vec3( Ry2 * Rx2 * glm::vec4(-1.5, 1, 2.5,1.0));
-//                lightP[2].position = glm::vec3( Ry2 * Rx2 *  glm::vec4(-2, 1, -2.5,1.0));
-//                lightP[3].position = glm::vec3( Ry2 * Rx2 *  glm::vec4(2, 1, -0.5,1));
-//                lightP[4].position = glm::vec3( Ry2 * Rx2 *  glm::vec4(-1.1, 2.2, -1.1,1.0));
-
+                if (rotX < 0) rotX = 355;
             }
             break;
         case GLFW_KEY_DOWN:
             if (action==GLFW_PRESS || action == GLFW_REPEAT) {
                 rotX += 5.0f;
-//                glm::mat4 Rx2 = glm::rotate(I, glm::radians(rotX), X_axis);
-//                glm::mat4 Ry2 = glm::rotate   (I, glm::radians(rotY), Y_axis);
-
-//                lightF[0].position = glm::vec3(Ry2 * Rx2* glm::vec4(0.0, 1.0, 0.0, 1.0));
-//                lightF[0].direction = glm::vec3(Ry2 * Rx2* glm::vec4(0.0, -1.0, 0.0, 0.0));
-//
-//                lightP[0].position = glm::vec3( Ry2 * Rx2 * glm::vec4(1, 1, 2,1));
-//                lightP[1].position = glm::vec3( Ry2 * Rx2 *  glm::vec4(-1.5, 1, 2.5,1.0));
-//                lightP[2].position = glm::vec3( Ry2 * Rx2 *  glm::vec4(-2, 1, -2.5,1.0));
-//                lightP[3].position = glm::vec3( Ry2 * Rx2 *  glm::vec4(2, 1, -0.5,1));
-//                lightP[4].position = glm::vec3( Ry2 * Rx2 * glm::vec4(-1.1, 2.2, -1.1,1.0));
-
-
+                if (rotX > 355) rotX = 0;
             }
             break;
         case GLFW_KEY_LEFT:
             if (action==GLFW_PRESS || action == GLFW_REPEAT) {
                 rotY -= 5.0f;
-//                glm::mat4 Rx2 = glm::rotate(I, glm::radians(rotX), X_axis);
-//                glm::mat4 Ry2 = glm::rotate   (I, glm::radians(rotY), Y_axis);
-//                lightF[0].position = glm::vec3(Ry2 * Rx2 * glm::vec4(0.0, 1.0, 0.0, 1.0));
-//                lightF[0].direction = glm::vec3(Ry2 * Rx2*  glm::vec4(0.0, -1.0, 0.0, 0.0));
-//
-//
-//                lightP[0].position = glm::vec3( Ry2 * Rx2 * glm::vec4(1, 1, 2,1));
-//                lightP[1].position = glm::vec3( Ry2 * Rx2* glm::vec4(-1.5, 1, 2.5,1.0));
-//                lightP[2].position = glm::vec3( Ry2 * Rx2* glm::vec4(-2, 1, -2.5,1.0));
-//                lightP[3].position = glm::vec3( Ry2 * Rx2* glm::vec4(2, 1, -0.5,1));
-//                lightP[4].position = glm::vec3( Ry2 * Rx2* glm::vec4(-1.1, 2.2, -1.1,1.0));
-
-
+                if (rotY < 0) rotY = 355;
             }
             break;
         case GLFW_KEY_RIGHT:
             if (action==GLFW_PRESS || action == GLFW_REPEAT) {
                 rotY += 5.0f;
-//                glm::mat4 Rx2 = glm::rotate(I, glm::radians(rotX), X_axis);
-//                glm::mat4 Ry2 = glm::rotate   (I, glm::radians(rotY), Y_axis);
-//                lightF[0].position = glm::vec3(Ry2 * Rx2* glm::vec4(0.0, 1.0, 0.0, 1.0));
-//                lightF[0].direction = glm::vec3(Ry2 * Rx2* glm::vec4(0.0, -1.0, 0.0, 0.0));
-//
-//
-//                lightP[0].position = glm::vec3( Ry2 * Rx2* glm::vec4(1, 1, 2,1));
-//                lightP[1].position = glm::vec3( Ry2 * Rx2* glm::vec4(-1.5, 1, 2.5,1.0));
-//                lightP[2].position = glm::vec3( Ry2 * Rx2* glm::vec4(-2, 1, -2.5,1.0));
-//                lightP[3].position = glm::vec3( Ry2 * Rx2* glm::vec4(2, 1, -0.5,1));
-//                lightP[4].position = glm::vec3( Ry2 * Rx2* glm::vec4(-1.1, 2.2, -1.1,1.0));
-
-
+                if (rotY > 355) rotY = 0;
             }
             break;
 
-        case GLFW_KEY_W:
+        case GLFW_KEY_W: // ####
             if (action==GLFW_PRESS || action == GLFW_REPEAT) {
                 ws_mov += 5.0f;
             }
             break;
-        case GLFW_KEY_S:
+        case GLFW_KEY_S: // ####
             if (action==GLFW_PRESS || action == GLFW_REPEAT) {
                 ws_mov -= 5.0f;
             }
             break;
-        case GLFW_KEY_A:
+        case GLFW_KEY_A: // ####
             if (action==GLFW_PRESS || action == GLFW_REPEAT) {
                 ad_mov += 5.0f;
             }
             break;
-        case GLFW_KEY_D:
+        case GLFW_KEY_D: // ####
             if (action==GLFW_PRESS || action == GLFW_REPEAT) {
                 ad_mov -= 5.0f;
             }
             break;
-        case GLFW_KEY_Q:
+        case GLFW_KEY_Q: // ####
             if (action==GLFW_PRESS || action == GLFW_REPEAT) {
                 altura_Ovni += 0.1;
             }
             break;
-        case GLFW_KEY_E:
+        case GLFW_KEY_E: // ####
             if (action==GLFW_PRESS || action == GLFW_REPEAT) {
                 altura_Ovni -= 0.1;
             }
             break;
-        case GLFW_KEY_J:
+        case GLFW_KEY_J: /////////////////////////
             if(mods==GLFW_MOD_SHIFT) desZ -= desZ > -24.0f ? 0.1f : 0.0f;
             else                     desZ += desZ <   5.0f ? 0.1f : 0.0f;
             break;
         case GLFW_KEY_Z:
-            if (mods==GLFW_MOD_SHIFT) {
-                if (mods==GLFW_MOD_SHIFT && action == GLFW_REPEAT) {
-                    movY -= movX <= 0 ? 0.0 : 0.025;
-                    movX -= movX <= 0 ? 0.0 : 0.025;
+            if (mods == GLFW_MOD_SHIFT) {
+                if (action == GLFW_REPEAT) {
+                    movX -= movX < 0.025 ? 0.0 : 0.025;
+                    movY -= movY < 0.025 ? 0.0 : 0.025;
                 }
             } else {
                 if (action == GLFW_REPEAT) {
-                    movX += movX >= 0.9 ? 0.0 : 0.025;
-                    movY += movX >= 0.9 ? 0.0 : 0.025;
+                    movX += movX > 0.875 ? 0.0 : 0.025;
+                    movY += movY > 0.875 ? 0.0 : 0.025;
                 }
             }
             break;
@@ -944,14 +896,15 @@ void funKey(GLFWwindow* window, int key  , int scancode, int action, int mods) {
             break;
         case GLFW_KEY_M:
             if (action==GLFW_PRESS || action == GLFW_REPEAT) {
-                ang_caps += 5.0f;
+                ang_caps -= ang_caps > -100 ? 5.0 : 0.0;
             }
             break;
         case GLFW_KEY_N:
             if (action==GLFW_PRESS || action == GLFW_REPEAT) {
-                ang_caps -= 5.0f;
+                ang_caps += ang_caps < 0 ? 5.0 : 0.0;
             }
             break;
+
         case GLFW_KEY_0:
             rotX = 0.0f;
             rotY = 0.0f;
@@ -966,6 +919,8 @@ void funKey(GLFWwindow* window, int key  , int scancode, int action, int mods) {
 // #####################################################################################################################
 
 void funScroll(GLFWwindow* window, double xoffset, double yoffset) {
+
+    if (turn_firstP) return;
 
     if(yoffset>0) {
         //fovy -= fovy>5.0f ? 5.0f : 0.0f;
@@ -982,14 +937,14 @@ void funScroll(GLFWwindow* window, double xoffset, double yoffset) {
 
 void funCursorPos(GLFWwindow* window, double xpos, double ypos) {
 
-    if(glfwGetMouseButton(window,GLFW_MOUSE_BUTTON_LEFT)==GLFW_RELEASE) {
+    if(glfwGetMouseButton(window,GLFW_MOUSE_BUTTON_LEFT)==GLFW_RELEASE && !turn_firstP) {
         lastX = xpos;
         lastY = ypos;
         return;
     }
 
     float limY = 89.0;
-    alphaX = 360.0*(2.0*(xpos)/(float)w - 1.0);
+    alphaX = turn_firstP ? 360.0*(1.0 - 2.0*(xpos)/(float)w) : 360.0*(2.0*(xpos)/(float)w - 1.0);
     alphaY = 360.0*(1.0 - 2.0*(ypos)/(float)h);
     if(alphaY<-limY) alphaY = -limY;
     if(alphaY> limY) alphaY =  limY;
