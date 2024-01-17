@@ -5,7 +5,7 @@
 #include "Model.h"
 #include "Texture.h"
 
-const int PLANET_TYPES = 1;
+const int PLANET_TYPES = 2;
 
 // ===================================================
 
@@ -19,13 +19,14 @@ void drawOrbes(glm::mat4 P, glm::mat4 V, glm::mat4 M);
 void drawSoporte(glm::mat4 P, glm::mat4 V, glm::mat4 M);
 
 glm::mat4 applyMatrices(float angl_speed, float lastAngle);
+void actualizarMatrices();
 
 void funFramebufferSize(GLFWwindow* window, int width, int height);
 void funKey            (GLFWwindow* window, int key  , int scancode, int action, int mods);
 void funScroll         (GLFWwindow* window, double xoffset, double yoffset);
 void funCursorPos      (GLFWwindow* window, double xpos, double ypos);
 
-void funPlanetStyle    (int select);
+void funPlanetStyle    ();
 
 // #####################################################################################################################
 
@@ -46,6 +47,8 @@ void funPlanetStyle    (int select);
 
     Model planeta;
     Model background;
+
+    Model suzanne;
 
 // ===================================================
 // Imagenes (texturas)
@@ -128,6 +131,12 @@ void funPlanetStyle    (int select);
     float angle2 = 0.0;
     //Angulo de rotación 3 : Velocidad = Baja
     float angle3 = 0.0;
+
+    float angleX_ovni = 0.0;
+    float lastAngleX_ovni = 0.0;
+    float angleZ_ovni = 0.0;
+    float lastAngleZ_ovni = 0.0;
+    
     //Acumulador que almacena el ultimo angulo de rotación 1
     float lastAngle = 0.0;
     //Acumulador que almacena el ultimo angulo de rotación 2
@@ -140,6 +149,8 @@ void funPlanetStyle    (int select);
     float time = glfwGetTime();
 // Tiempo anterior
     static float lastTime = 0.0;
+    static float lastTime_ovniX = 0.0;
+    static float lastTime_ovniZ = 0.0;
 
 // Movimiento de camara
     //Campo de vision
@@ -160,6 +171,11 @@ void funPlanetStyle    (int select);
     bool turn_firstP = false;
     //Activar o desactivar mapa emisivo de los modelos seleccionados
     bool turn_emiss = false;
+    //Activar o desactivarr visibilidad piloto del ovni
+    bool turn_invisible = true;
+    //Activar o desactivar renderizacion de texturas
+    bool texturasoff= false;
+
     //OPCIONES PLANETA
     int select_planet = 1; 
 
@@ -168,12 +184,8 @@ void funPlanetStyle    (int select);
     // Apagar o Encender las luces
     float onoff = 0.0;
 
-
-// Modo para cambiar entre solido y alambre
-unsigned int mode = GL_FILL;
-
-bool texturasoff= false;
-
+    // Modo para cambiar entre solido y alambre
+    unsigned int mode = GL_FILL;
 
 // Matrices y vectores
     //Eje de coordenadas X del mundo
@@ -197,6 +209,12 @@ bool texturasoff= false;
 
     //Tamaño del fondo constante
     glm::mat4 S_bg = glm::scale (I, glm::vec3(50.0, 50.0, 50.0));
+
+    glm::mat4 M_ovni;
+    bool forwback_mov = false;
+    bool leftright_mov = false;
+    bool turn_ovniMovX = false;
+    bool turn_ovniMovZ = false;
 
 
 // #####################################################################################################################
@@ -240,6 +258,9 @@ int main() {
  // Entramos en el bucle de renderizado
     configScene();
     while(!glfwWindowShouldClose(window)) {
+        // Obtenemos el tiempo actual
+        time = glfwGetTime();
+        actualizarMatrices();
         renderScene();
         glfwSwapBuffers(window);
         glfwPollEvents();
@@ -279,6 +300,8 @@ void configScene() {
 
     planeta.initModel("resources/models/planeta.obj");
     background.initModel("resources/models/background.obj");
+
+    suzanne.initModel("resources/models/suzanne.obj");
 
  // Imagenes (texturas)
     img1.initTexture("resources/textures/img1.png");
@@ -367,11 +390,11 @@ void configScene() {
     // Luces focales
     lightF[0].position    = glm::vec3(0.0, 1.0, 0.0);  // Cambia la posición en el eje y
     lightF[0].direction   = glm::vec3(0.0, -1.0, 0.0);  // Cambia la dirección si es necesario
-    lightF[0].ambient  = onoff * glm::vec4(0.7, 0.7, 0.0, 1.0);  // Amarillo
-    lightF[0].diffuse  = onoff * glm::vec4(0.7, 0.7, 0.0, 1.0);
-    lightF[0].specular = onoff * glm::vec4(0.7, 0.7, 0.0, 1.0);
-    lightF[0].innerCutOff = 40.0; //20.0;
-    lightF[0].outerCutOff = lightF[0].innerCutOff + 1.0; //10.0;
+    lightF[0].ambient     = onoff * glm::vec4(0.7, 0.7, 0.0, 1.0);  // Amarillo
+    lightF[0].diffuse     = onoff * glm::vec4(0.7, 0.7, 0.0, 1.0);
+    lightF[0].specular    = onoff * glm::vec4(0.7, 0.7, 0.0, 1.0);
+    lightF[0].innerCutOff = 25.0; //20.0;
+    lightF[0].outerCutOff = lightF[0].innerCutOff + 0.1; //1.0; //10.0;
     lightF[0].c0          = 1.0;
     lightF[0].c1          = 0.09;
     lightF[0].c2          = 0.032;
@@ -448,6 +471,39 @@ void configScene() {
 
 }
 
+void actualizarMatrices() {
+
+    // Uso y manipulación de matrices
+    glm::mat4 Rx_mLocal = glm::rotate   (I, glm::radians(rotX), X_axis);
+    glm::mat4 Ry_mLocal = glm::rotate   (I, glm::radians(rotY), Y_axis);
+    // Trasladar el sistema de coordenadas
+    glm::mat4 translate = glm::translate(I, -center_p);
+    // Trasladar el sistema de coordenadas de vuelta
+    glm::mat4 translateBack = glm::translate(I, center_p);
+
+    glm::mat4 T_alturaOvni = glm::translate(I, glm::vec3(0.0,altura_Ovni,0.0));
+
+    // Realizar la rotación
+    if (forwback_mov)
+        angleX_ovni = lastAngleX_ovni + (time - lastTime_ovniX) * glm::radians(2.0f * 50.0f);
+    else 
+        angleX_ovni = lastAngleX_ovni - (time - lastTime_ovniX) * glm::radians(2.0f * 50.0f);
+    if (leftright_mov)
+        angleZ_ovni = lastAngleZ_ovni + (time - lastTime_ovniZ) * glm::radians(2.0f * 50.0f);
+    else
+        angleZ_ovni = lastAngleZ_ovni - (time - lastTime_ovniZ) * glm::radians(2.0f * 50.0f);
+
+    glm::mat4 Rx_mGlobal = glm::rotate (I, turn_ovniMovX ? angleX_ovni : lastAngleX_ovni, X_axis);
+    glm::mat4 Rz_mGlobal = glm::rotate(I, turn_ovniMovZ ? angleZ_ovni : lastAngleZ_ovni, Z_axis);
+
+    
+
+    // Combinar las transformaciones
+    glm::mat4 M_transform = translateBack * Rz_mGlobal * Rx_mGlobal * translate;
+
+    M_ovni = M_transform * T_alturaOvni * Ry_mLocal * Rx_mLocal;
+}
+
 // #####################################################################################################################
 
 void renderScene() {
@@ -460,7 +516,7 @@ void renderScene() {
     shaders.useShaders();
 
 // Obtén el tiempo actual
-    time = glfwGetTime();
+    //time = glfwGetTime(); //Desplazado dentro del bucle de la funcion main()
 
  // Uso y manipulación de matrices
 
@@ -558,7 +614,7 @@ void renderScene() {
 
     M_capsula = M1 * M_op_caps;
 //    M_cuerpo_sup = M1 * Ry_fast;
-    M_cuerpo_sup = applyMatrices(angle, lastAngle);
+    M_cuerpo_sup = M_ovni; //applyMatrices(angle, lastAngle);
     M_cuerpo_inf = M1 * Ry_medium;
     M_circle = M1 * Ry_medium2;
     M_orbs = M1 * Ry_medium;
@@ -585,6 +641,8 @@ void renderScene() {
 
         drawObjectTex(planeta, texPlanet, P, V, M_planeta);
 
+        if (!turn_firstP && !turn_invisible) drawObjectMat(suzanne, cromo, P, V, M_circle);
+
         // Disable back face culling
         glDisable(GL_CULL_FACE);
 
@@ -601,9 +659,30 @@ void renderScene() {
 
 
         //Objetos transparentes //////////////////////////////////////////////////////
+
+        // Limpiar el buffer de stencil
+        glClear(GL_STENCIL_BUFFER_BIT);
+
+        // Habilitar el buffer de stencil
+        glEnable(GL_STENCIL_TEST);
+
+        // Configurar el buffer de stencil para marcar los píxeles donde se dibuja la cápsula
+        glStencilFunc(GL_ALWAYS, 1, 0xFF);
+        glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+
         glDepthMask(GL_FALSE);
         drawObjectTex(capsula, texWindow, P, V, M_capsula);
         glDepthMask(GL_TRUE);
+
+        // Configurar el buffer de stencil para descartar los píxeles marcados
+        glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
+        glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
+
+        // Dibujar a Suzanne solo en los píxeles no marcados
+        if (!turn_firstP && turn_invisible) drawObjectMat(suzanne, cromo, P, V, M_circle);
+
+        // Deshabilitar el buffer de stencil
+        glDisable(GL_STENCIL_TEST);
 
     }else{
         // Enable back face culling //////////////////////////////////////////////////////
@@ -778,7 +857,7 @@ void funKey(GLFWwindow* window, int key, int scancode, int action, int mods) {
     switch(key) {
         case GLFW_KEY_4:
             if (action==GLFW_PRESS) {
-                funPlanetStyle(select_planet);
+                //funPlanetStyle();
                 select_planet++;
                 if (select_planet > PLANET_TYPES) select_planet = 0;
             }
@@ -789,7 +868,29 @@ void funKey(GLFWwindow* window, int key, int scancode, int action, int mods) {
                 turn_firstP = !turn_firstP;
             }
             break;
-
+        case GLFW_KEY_6:
+            if (action==GLFW_PRESS) {
+                if (mode == GL_FILL) {
+                    mode = GL_LINE;
+                } else {
+                    mode = GL_FILL;
+                }
+            }
+            break;
+        case GLFW_KEY_7:
+            if (action==GLFW_PRESS) {
+                if (texturasoff == false) {
+                    texturasoff=true;
+                } else {
+                    texturasoff=false;
+                }
+            }
+            break;
+        case GLFW_KEY_8:
+            if (action==GLFW_PRESS) {
+                turn_invisible = !turn_invisible;
+            }
+            break;
         case GLFW_KEY_KP_ADD:
             if (action == GLFW_PRESS || action == GLFW_REPEAT) {
                 incLight += incLight < 10.0 ? 0.1 : 0.0;
@@ -835,11 +936,67 @@ void funKey(GLFWwindow* window, int key, int scancode, int action, int mods) {
                 if (rotY > 355) rotY = 0;
             }
             break;
-
+        case GLFW_KEY_T:
+            if (action == GLFW_PRESS || action == GLFW_REPEAT)
+                if (!turn_ovniMovX) {
+                    forwback_mov = true;
+                    turn_ovniMovX = true;
+                    lastTime_ovniX = time; // Guardamos el tiempo cuando la tecla es presionada
+                }
+            if (action == GLFW_RELEASE)
+                if (turn_ovniMovX) {
+                    turn_ovniMovX = false;
+                    lastAngleX_ovni = angleX_ovni;
+                }
+            break;
+        case GLFW_KEY_Y:
+            if (action == GLFW_PRESS || action == GLFW_REPEAT)
+                if (!turn_ovniMovX) {
+                    forwback_mov = false;
+                    turn_ovniMovX = true;
+                    lastTime_ovniX = time; // Guardamos el tiempo cuando la tecla es presionada
+                }
+            if (action == GLFW_RELEASE)
+                if (turn_ovniMovX) {
+                    turn_ovniMovX = false;
+                    lastAngleX_ovni = angleX_ovni;
+                }
+            break;
+        case GLFW_KEY_U:
+            if (action == GLFW_PRESS || action == GLFW_REPEAT)
+                if (!turn_ovniMovZ) {
+                    leftright_mov = true;
+                    turn_ovniMovZ = true;
+                    lastTime_ovniZ = time; // Guardamos el tiempo cuando la tecla es presionada
+                }
+            if (action == GLFW_RELEASE)
+                if (turn_ovniMovZ) {
+                    turn_ovniMovZ = false;
+                    lastAngleZ_ovni = angleZ_ovni;
+                }
+            break;
+        case GLFW_KEY_I:
+            if (action == GLFW_PRESS || action == GLFW_REPEAT)
+                if (!turn_ovniMovZ) {
+                    leftright_mov = false;
+                    turn_ovniMovZ = true;
+                    lastTime_ovniZ = time; // Guardamos el tiempo cuando la tecla es presionada
+                }
+            if (action == GLFW_RELEASE)
+                if (turn_ovniMovZ) {
+                    turn_ovniMovZ = false;
+                    lastAngleZ_ovni = angleZ_ovni;
+                }
+            break;
         case GLFW_KEY_W: // ####
             if (action==GLFW_PRESS || action == GLFW_REPEAT) {
                 ws_mov += 5.0f;
-            }
+                //if (!fwbw_mov) fwbw_mov = true;
+            } /*else {
+                fwbw_mov = false;
+                lastAngleX_ovni = angleX_ovni;
+                lastTime_ovniX = glfwGetTime();
+            }*/
             break;
         case GLFW_KEY_S: // ####
             if (action==GLFW_PRESS || action == GLFW_REPEAT) {
@@ -927,12 +1084,9 @@ void funKey(GLFWwindow* window, int key, int scancode, int action, int mods) {
                 lightP[4].diffuse     = onoff * glm::vec3(0, 1, 1);
                 lightP[4].specular    = onoff * glm::vec3(0, 1, 1);
 
-
                 lightF[0].ambient     = onoff * glm::vec4(0.7, 0.7, 0.0, 1.0);
                 lightF[0].diffuse     = onoff * glm::vec4(0.7, 0.7, 0.0, 1.0);
                 lightF[0].specular    = onoff * glm::vec4(0.7, 0.7, 0.0, 1.0);
-
-
             }
             break;
         case GLFW_KEY_M:
@@ -946,29 +1100,7 @@ void funKey(GLFWwindow* window, int key, int scancode, int action, int mods) {
             }
             break;
 
-        case GLFW_KEY_6:
-            if (action==GLFW_PRESS) {
-                if (mode == GL_FILL) {
-                    mode = GL_LINE;
-                } else {
-                    mode = GL_FILL;
-                }
-            }
-
-            break;
-
-        case GLFW_KEY_7:
-            if (action==GLFW_PRESS) {
-                if (texturasoff == false) {
-                    texturasoff=true;
-                } else {
-                    texturasoff=false;
-                }
-            }
-
-            break;
-
-
+            
         case GLFW_KEY_0:
             rotX = 0.0f;
             rotY = 0.0f;
@@ -977,7 +1109,6 @@ void funKey(GLFWwindow* window, int key, int scancode, int action, int mods) {
 
             break;
     }
-
 }
 
 // #####################################################################################################################
@@ -986,15 +1117,10 @@ void funScroll(GLFWwindow* window, double xoffset, double yoffset) {
 
     if (turn_firstP) return;
 
-    if(yoffset>0) {
-        //fovy -= fovy>5.0f ? 5.0f : 0.0f;
+    if(yoffset>0)
         dist -= dist>10.0 ? 5.0  : 0.0;
-    }
-    if(yoffset<0) {
-        //fovy += fovy<180.0f ? 5.0f : 0.0f;
+    if(yoffset<0)
         dist += dist<100.0   ? 5.0  : 0.0;
-    }
-
 }
 
 // #####################################################################################################################
@@ -1009,7 +1135,7 @@ void funCursorPos(GLFWwindow* window, double xpos, double ypos) {
 
     float limY = 89.0;
     alphaX = turn_firstP ? 360.0*(1.0 - 2.0*(xpos)/(float)w) : 360.0*(2.0*(xpos)/(float)w - 1.0);
-    alphaY = 360.0*(1.0 - 2.0*(ypos)/(float)h);
+    alphaY = 90.0*(1.0 - 2.0*(ypos)/(float)h);
     if(alphaY<-limY) alphaY = -limY;
     if(alphaY> limY) alphaY =  limY;
 
@@ -1017,7 +1143,7 @@ void funCursorPos(GLFWwindow* window, double xpos, double ypos) {
 
 // #####################################################################################################################
 
-void funPlanetStyle(int select) {
+void funPlanetStyle() {
 
 //    switch (select) {
 //        case 1: {
