@@ -168,6 +168,13 @@ void funPlanetStyle    (int select);
     // Apagar o Encender las luces
     float onoff = 0.0;
 
+
+// Modo para cambiar entre solido y alambre
+unsigned int mode = GL_FILL;
+
+bool texturasoff= false;
+
+
 // Matrices y vectores
     //Eje de coordenadas X del mundo
     glm::vec3 X_axis = glm::vec3(1, 0, 0);
@@ -562,40 +569,80 @@ void renderScene() {
 
     M_background = Rz_slow * S_bg;
 
+    if (texturasoff == false) {
 
-    // Enable back face culling //////////////////////////////////////////////////////
-    glEnable(GL_CULL_FACE); // Enable culling
-    glCullFace(GL_BACK);
+        // Enable back face culling //////////////////////////////////////////////////////
+        glEnable(GL_CULL_FACE); // Enable culling
+        glCullFace(GL_BACK);
 
-    drawObjectTex(cuerpo_sup, texCuerpoSup, P, V, M_cuerpo_sup);
+        drawObjectTex(cuerpo_sup, texCuerpoSup, P, V, M_cuerpo_sup);
 
-    drawObjectTex(cuerpo_inf, texCuerpoInf, P, V, M_cuerpo_inf);
+        drawObjectTex(cuerpo_inf, texCuerpoInf, P, V, M_cuerpo_inf);
 
-    drawOrbes(P, V, M_orbs);
+        drawOrbes(P, V, M_orbs);
 
-    drawSoporte(P, V, M_pata);
+        drawSoporte(P, V, M_pata);
 
-    drawObjectTex(planeta, texPlanet, P, V, M_planeta);
+        drawObjectTex(planeta, texPlanet, P, V, M_planeta);
 
-    // Disable back face culling
-    glDisable(GL_CULL_FACE);
+        // Disable back face culling
+        glDisable(GL_CULL_FACE);
 
-    // Enable front face culling //////////////////////////////////////////////////////
-    glEnable(GL_CULL_FACE); // Enable culling
-    glCullFace(GL_FRONT); // Specify that front faces should be culled
+        // Enable front face culling //////////////////////////////////////////////////////
+        glEnable(GL_CULL_FACE); // Enable culling
+        glCullFace(GL_FRONT); // Specify that front faces should be culled
 
-    drawObjectTex(background, texStars, P, V, M_background);
+        drawObjectTex(background, texStars, P, V, M_background);
 
-    drawObjectTex(circle, texCircle, P, V, M_circle);
+        drawObjectTex(circle, texCircle, P, V, M_circle);
 
-    // Disable front face culling
-    glDisable(GL_CULL_FACE);
+        // Disable front face culling
+        glDisable(GL_CULL_FACE);
 
 
-    //Objetos transparentes //////////////////////////////////////////////////////
-    glDepthMask(GL_FALSE);
-    drawObjectTex(capsula, texWindow, P, V, M_capsula);
-    glDepthMask(GL_TRUE);
+        //Objetos transparentes //////////////////////////////////////////////////////
+        glDepthMask(GL_FALSE);
+        drawObjectTex(capsula, texWindow, P, V, M_capsula);
+        glDepthMask(GL_TRUE);
+
+    }else{
+        // Enable back face culling //////////////////////////////////////////////////////
+        glEnable(GL_CULL_FACE); // Enable culling
+        glCullFace(GL_BACK);
+
+        drawObjectMat(cuerpo_sup, cromo, P, V, M_cuerpo_sup);
+
+        drawObjectMat(cuerpo_inf, cromo, P, V, M_cuerpo_inf);
+
+        drawOrbes(P, V, M_orbs);
+
+        drawSoporte(P, V, M_pata);
+
+        drawObjectMat(planeta, cromo, P, V, M_planeta);
+
+        // Disable back face culling
+        glDisable(GL_CULL_FACE);
+
+        // Enable front face culling //////////////////////////////////////////////////////
+        glEnable(GL_CULL_FACE); // Enable culling
+        glCullFace(GL_FRONT); // Specify that front faces should be culled
+
+        drawObjectMat(background, cromo, P, V, M_background);
+
+        drawObjectMat(circle, cromo, P, V, M_circle);
+
+        // Disable front face culling
+        glDisable(GL_CULL_FACE);
+
+
+        //Objetos transparentes //////////////////////////////////////////////////////
+
+        drawObjectMat(capsula, cromo, P, V, M_capsula);
+
+
+
+
+    }
     
 }
 
@@ -692,7 +739,7 @@ void drawObjectMat(Model model, Material material, glm::mat4 P, glm::mat4 V, glm
     shaders.setMat4("uPVM",P*V*M);
     shaders.setBool("uWithMaterials",true);
     shaders.setMaterial("umaterial",material);
-    model.renderModel(GL_FILL);
+    model.renderModel(mode);
 
 }
 
@@ -707,7 +754,7 @@ void drawObjectTex(Model model, Textures textures, glm::mat4 P, glm::mat4 V, glm
     shaders.setTextures("utextures",textures);
     if(textures.normal!=0) shaders.setBool("uWithNormals",true);
     else                   shaders.setBool("uWithNormals",false);
-    model.renderModel(GL_FILL);
+    model.renderModel(mode);
 
 }
 
@@ -898,6 +945,29 @@ void funKey(GLFWwindow* window, int key, int scancode, int action, int mods) {
                 ang_caps += ang_caps < 0 ? 5.0 : 0.0;
             }
             break;
+
+        case GLFW_KEY_6:
+            if (action==GLFW_PRESS) {
+                if (mode == GL_FILL) {
+                    mode = GL_LINE;
+                } else {
+                    mode = GL_FILL;
+                }
+            }
+
+            break;
+
+        case GLFW_KEY_7:
+            if (action==GLFW_PRESS) {
+                if (texturasoff == false) {
+                    texturasoff=true;
+                } else {
+                    texturasoff=false;
+                }
+            }
+
+            break;
+
 
         case GLFW_KEY_0:
             rotX = 0.0f;
