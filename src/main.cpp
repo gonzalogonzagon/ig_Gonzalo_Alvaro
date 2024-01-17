@@ -18,8 +18,7 @@ void drawObjectTex(Model model, Textures textures, glm::mat4 P, glm::mat4 V, glm
 void drawOrbes(glm::mat4 P, glm::mat4 V, glm::mat4 M);
 void drawSoporte(glm::mat4 P, glm::mat4 V, glm::mat4 M);
 
-glm::mat4 applyMatrices(float angl_speed, float lastAngle);
-void actualizarMatrices();
+void applyMatrices();
 
 void funFramebufferSize(GLFWwindow* window, int width, int height);
 void funKey            (GLFWwindow* window, int key  , int scancode, int action, int mods);
@@ -209,6 +208,8 @@ void funPlanetStyle    ();
 
     //Tamaño del fondo constante
     glm::mat4 S_bg = glm::scale (I, glm::vec3(50.0, 50.0, 50.0));
+    //Posicion del planeta constante
+    glm::mat4 T_planeta = glm::translate(I, glm::vec3(0.0,0.2,0.0));
 
     glm::mat4 M_ovni;
     bool forwback_mov = false;
@@ -260,7 +261,7 @@ int main() {
     while(!glfwWindowShouldClose(window)) {
         // Obtenemos el tiempo actual
         time = glfwGetTime();
-        actualizarMatrices();
+        applyMatrices();
         renderScene();
         glfwSwapBuffers(window);
         glfwPollEvents();
@@ -471,7 +472,7 @@ void configScene() {
 
 }
 
-void actualizarMatrices() {
+void applyMatrices() {
 
     // Uso y manipulación de matrices
     glm::mat4 Rx_mLocal = glm::rotate   (I, glm::radians(rotX), X_axis);
@@ -480,7 +481,7 @@ void actualizarMatrices() {
     glm::mat4 translate = glm::translate(I, -center_p);
     // Trasladar el sistema de coordenadas de vuelta
     glm::mat4 translateBack = glm::translate(I, center_p);
-
+    // Trasladar el ovni a la altura deseada
     glm::mat4 T_alturaOvni = glm::translate(I, glm::vec3(0.0,altura_Ovni,0.0));
 
     // Realizar la rotación
@@ -495,13 +496,39 @@ void actualizarMatrices() {
 
     glm::mat4 Rx_mGlobal = glm::rotate (I, turn_ovniMovX ? angleX_ovni : lastAngleX_ovni, X_axis);
     glm::mat4 Rz_mGlobal = glm::rotate(I, turn_ovniMovZ ? angleZ_ovni : lastAngleZ_ovni, Z_axis);
-
-    
-
     // Combinar las transformaciones
     glm::mat4 M_transform = translateBack * Rz_mGlobal * Rx_mGlobal * translate;
 
+    //Matriz general de transformación del ovni
     M_ovni = M_transform * T_alturaOvni * Ry_mLocal * Rx_mLocal;
+
+    glm::mat4 rotateCaps = glm::rotate(I, glm::radians(ang_caps), Z_axis);
+    glm::mat4 translateC = glm::translate(I, -bisel_caps);
+    glm::mat4 translateBackC = glm::translate(I, bisel_caps);
+
+    glm::mat4 M_op_caps = translateBackC * rotateCaps * translateC;
+
+    // Calcula el ángulo de rotación basado en el tiempo
+    angle = lastAngle + (time - lastTime) * glm::radians(2.0f * 80.0f);
+    angle2 = lastAngle2 + (time - lastTime) * glm::radians(2.0f * 50.0f);
+
+    angle3 = time * glm::radians(1.0f * 1.0f);
+
+    glm::mat4 Ry_fast = glm::rotate   (I, turn_ovniEngine ? angle : lastAngle, Y_axis);
+    glm::mat4 Ry_medium = glm::rotate   (I, turn_ovniEngine ? -angle2 : -lastAngle2, Y_axis);
+    glm::mat4 Ry_medium2 = glm::rotate   (I, turn_ovniEngine ? angle2*0.1f : lastAngle2*0.1f, Y_axis);
+
+    glm::mat4 Rz_slow = glm::rotate   (I, -angle3, Z_axis);
+
+    M_capsula = M_ovni * M_op_caps;
+    M_cuerpo_sup = M_ovni * Ry_fast;
+    M_cuerpo_inf = M_ovni * Ry_medium;
+    M_circle = M_ovni * Ry_medium2;
+    M_orbs = M_ovni * Ry_medium;
+    M_pata = M_ovni * Ry_medium;
+
+    M_planeta = T_planeta;
+    M_background = Rz_slow * S_bg;
 }
 
 // #####################################################################################################################
@@ -518,46 +545,13 @@ void renderScene() {
 // Obtén el tiempo actual
     //time = glfwGetTime(); //Desplazado dentro del bucle de la funcion main()
 
- // Uso y manipulación de matrices
-
-    glm::mat4 Rx = glm::rotate   (I, glm::radians(rotX), X_axis);
-    glm::mat4 Ry = glm::rotate   (I, glm::radians(rotY), Y_axis);
-
-
-    glm::mat4 T_planeta = glm::translate(I, glm::vec3(0.0,0.2,0.0));
-    glm::mat4 T_alturaOvni = glm::translate(I, glm::vec3(0.0,altura_Ovni,0.0));
-
-
-    glm::mat4 rotateCaps = glm::rotate(I, glm::radians(ang_caps), Z_axis);
-
-    glm::mat4 translateC = glm::translate(I, -bisel_caps);
-    glm::mat4 translateBackC = glm::translate(I, bisel_caps);
-
-    // Trasladar el sistema de coordenadas
-    glm::mat4 translate = glm::translate(I, -center_p);
-
-    // Realizar la rotación
-    glm::mat4 rotateX = glm::rotate(I, glm::radians(ws_mov), X_axis);
-    glm::mat4 rotateZ = glm::rotate(I, glm::radians(ad_mov), Z_axis);
-
-    // Trasladar el sistema de coordenadas de vuelta
-    glm::mat4 translateBack = glm::translate(I, center_p);
-
-    // Combinar las transformaciones
-    glm::mat4 M_transform = translateBack * rotateZ * rotateX * translate;
-
-    glm::mat4 M1 = M_transform * T_alturaOvni * Ry * Rx;
-
-    glm::mat4 M_op_caps = translateBackC * rotateCaps * translateC;
-
-
- // Matriz P
+// Matriz P
     float nplane =   0.1;
     float fplane = 150.0;
     float aspect = (float)w/(float)h;
     glm::mat4 P = glm::perspective(glm::radians(fovy), aspect, nplane, fplane);
 
- // Matriz V
+// Matriz V
     float x = dist*glm::cos(glm::radians(alphaY))*glm::sin(glm::radians(alphaX));
     float y = dist*glm::sin(glm::radians(alphaY));
     float z = dist*glm::cos(glm::radians(alphaY))*glm::cos(glm::radians(alphaX));
@@ -577,54 +571,24 @@ void renderScene() {
     //glm::vec3 up_firstPerson    (0.0, 1.0,  0.0);
 
     //glm::vec3 center_firstPerson = eye + direction;
-    glm::vec3 center_firstPerson = M_transform * Ry * Rx * glm::vec4(eye, 1.0);
+    glm::vec3 center_firstPerson = M_ovni * glm::vec4(eye, 1.0);
 
-    // Calcular el vector "right"
-    glm::vec3 right = glm::cross(direction, glm::vec3(0.0f, 1.0f, 0.0f));
+//    // Calcular el vector "right"
+//    glm::vec3 right = glm::cross(direction, glm::vec3(0.0f, 1.0f, 0.0f));
 
     // Calcular el vector "up_firstPerson"
-    glm::vec3 up_firstPerson = glm::vec3(M_transform * Ry * Rx * glm::vec4(up, 1.0));
+    glm::vec3 up_firstPerson = glm::vec3(M_ovni * glm::vec4(up, 1.0));
 
-    eye_firstPerson = glm::vec3(M_transform * Ry * Rx * glm::vec4(eye_firstPerson, 1.0));
+    eye_firstPerson = glm::vec3(M_ovni * glm::vec4(eye_firstPerson, 1.0));
 
 
     glm::mat4 V = turn_firstP ? glm::lookAt(eye_firstPerson, center_firstPerson, up_firstPerson) : glm::lookAt(eye, center, up);
     shaders.setVec3("ueye",eye);
 
- // Fijamos las luces
+// Fijamos las luces
     setLights(P,V);
 
- // Dibujamos la escena
-
-
-
-
-
-    // Calcula el ángulo de rotación basado en el tiempo
-    angle = lastAngle + (time - lastTime) * glm::radians(2.0f * 80.0f);
-    angle2 = lastAngle2 + (time - lastTime) * glm::radians(2.0f * 50.0f);
-
-    angle3 = time * glm::radians(1.0f * 1.0f);
-
-    glm::mat4 Ry_fast = glm::rotate   (I, turn_ovniEngine ? angle : lastAngle, Y_axis);
-    glm::mat4 Ry_medium = glm::rotate   (I, turn_ovniEngine ? -angle2 : -lastAngle2, Y_axis);
-    glm::mat4 Ry_medium2 = glm::rotate   (I, turn_ovniEngine ? angle2*0.1f : lastAngle2*0.1f, Y_axis);
-
-    glm::mat4 Rz_slow = glm::rotate   (I, -angle3, Z_axis);
-
-    M_capsula = M1 * M_op_caps;
-//    M_cuerpo_sup = M1 * Ry_fast;
-    M_cuerpo_sup = M_ovni; //applyMatrices(angle, lastAngle);
-    M_cuerpo_inf = M1 * Ry_medium;
-    M_circle = M1 * Ry_medium2;
-    M_orbs = M1 * Ry_medium;
-
-    M_pata = M1 * Ry_medium;
-
-    M_planeta = T_planeta;
-
-    M_background = Rz_slow * S_bg;
-
+// Dibujamos la escena
     if (texturasoff == false) {
 
         // Enable back face culling //////////////////////////////////////////////////////
@@ -641,7 +605,7 @@ void renderScene() {
 
         drawObjectTex(planeta, texPlanet, P, V, M_planeta);
 
-        if (!turn_firstP && !turn_invisible) drawObjectMat(suzanne, cromo, P, V, M_circle);
+        if (!turn_firstP && !turn_invisible) drawObjectMat(suzanne, cromo, P, V, M_ovni);
 
         // Disable back face culling
         glDisable(GL_CULL_FACE);
@@ -679,7 +643,7 @@ void renderScene() {
         glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
 
         // Dibujar a Suzanne solo en los píxeles no marcados
-        if (!turn_firstP && turn_invisible) drawObjectMat(suzanne, cromo, P, V, M_circle);
+        if (!turn_firstP && turn_invisible) drawObjectMat(suzanne, cromo, P, V, M_ovni);
 
         // Deshabilitar el buffer de stencil
         glDisable(GL_STENCIL_TEST);
@@ -717,12 +681,7 @@ void renderScene() {
         //Objetos transparentes //////////////////////////////////////////////////////
 
         drawObjectMat(capsula, cromo, P, V, M_capsula);
-
-
-
-
     }
-    
 }
 
 // #####################################################################################################################
@@ -750,35 +709,7 @@ void drawOrbes(glm::mat4 P, glm::mat4 V, glm::mat4 M) {
     drawObjectMat(orbe, mluz, P, V, M * RY_90 * RY_90);
     drawObjectMat(orbe, mluz, P, V, M * RY_90 * RY_90 * RY_90);
 
-
 }
-
-glm::mat4 applyMatrices(float angl_speed, float lastAngl) {
-
-    glm::mat4 Rx = glm::rotate   (I, glm::radians(rotX), X_axis);
-    glm::mat4 Ry = glm::rotate   (I, glm::radians(rotY), Y_axis);
-    glm::mat4 T_alturaOvni = glm::translate(I, glm::vec3(0.0,altura_Ovni,0.0));
-
-    // Trasladar el sistema de coordenadas
-    glm::mat4 translate = glm::translate(I, -center_p);
-    // Realizar la rotación
-    glm::mat4 rotateX = glm::rotate(I, glm::radians(ws_mov), X_axis);
-    glm::mat4 rotateZ = glm::rotate(I, glm::radians(ad_mov), Z_axis);
-    // Trasladar el sistema de coordenadas de vuelta
-    glm::mat4 translateBack = glm::translate(I, center_p);
-    // Combinar las transformaciones
-    glm::mat4 M_transform = translateBack * rotateZ * rotateX * translate;
-
-    glm::mat4 M1 = M_transform * T_alturaOvni * Ry * Rx;
-
-    glm::mat4 Ry_fast = glm::rotate   (I, turn_ovniEngine ? angl_speed : lastAngl, Y_axis);
-
-    M1 = M1 * Ry_fast;
-
-    return M1;
-
-}
-
 
 void setLights(glm::mat4 P, glm::mat4 V) {
 
@@ -791,22 +722,20 @@ void setLights(glm::mat4 P, glm::mat4 V) {
 //        glm::mat4 M = glm::translate(I,lightP[i].position) /* glm::scale(I,glm::vec3(0.1))*/;
 //        drawObjectMat(orbe, mluz, P, V, M);
 //    }
-
     for(int i=0; i<NLF; i++) {
         glm::mat4 M = glm::translate(I,lightF[i].position) * glm::scale(I,glm::vec3(0.025));
         drawObjectMat(sphere, mluz, P, V, M);
     }
 
-    lightF[0].position = glm::vec3(applyMatrices(0, 0)  * glm::vec4(0.0, 1.0, 0.0, 1.0));
-    lightF[0].direction = glm::vec3(applyMatrices(0, 0) *  glm::vec4(0.0, -1.0, 0.0, 0.0));
+    lightF[0].position  = glm::vec3(M_ovni * glm::vec4(0.0, 1.0, 0.0, 1.0));
+    lightF[0].direction = glm::vec3(M_ovni * glm::vec4(0.0, -1.0, 0.0, 0.0));
 
 
-    lightP[0].position = glm::vec3( applyMatrices(-angle2, lastAngle2) * glm::vec4(1, 1, 2,1));
-    lightP[1].position = glm::vec3( applyMatrices(-angle2, lastAngle2) * glm::vec4(-1.5, 1, 2.5,1.0));
-    lightP[2].position = glm::vec3( applyMatrices(-angle2, lastAngle2) * glm::vec4(-2, 1, -2.5,1.0));
-    lightP[3].position = glm::vec3( applyMatrices(-angle2, lastAngle2) * glm::vec4(2, 1, -0.5,1));
-    lightP[4].position = glm::vec3( applyMatrices(0, 0) * glm::vec4(-1.1, 2.2, -1.1,1.0));
-
+    lightP[0].position = glm::vec3(M_orbs * glm::vec4(1, 1, 2,1));
+    lightP[1].position = glm::vec3(M_orbs * glm::vec4(-1.5, 1, 2.5,1.0));
+    lightP[2].position = glm::vec3(M_orbs * glm::vec4(-2, 1, -2.5,1.0));
+    lightP[3].position = glm::vec3(M_orbs * glm::vec4(2, 1, -0.5,1));
+    lightP[4].position = glm::vec3(M_ovni * glm::vec4(-1.1, 2.2, -1.1,1.0));
 }
 
 // #####################################################################################################################
