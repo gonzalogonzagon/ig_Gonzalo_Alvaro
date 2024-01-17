@@ -865,7 +865,7 @@ void funKey(GLFWwindow* window, int key, int scancode, int action, int mods) {
                 if (rotY > 355) rotY = 0;
             }
             break;
-        case GLFW_KEY_T:
+        case GLFW_KEY_S:
             if (action == GLFW_PRESS || action == GLFW_REPEAT)
                 if (!turn_ovniMovX) {
                     forwback_mov = true;
@@ -878,7 +878,7 @@ void funKey(GLFWwindow* window, int key, int scancode, int action, int mods) {
                     lastAngleX_ovni = angleX_ovni;
                 }
             break;
-        case GLFW_KEY_Y:
+        case GLFW_KEY_W:
             if (action == GLFW_PRESS || action == GLFW_REPEAT)
                 if (!turn_ovniMovX) {
                     forwback_mov = false;
@@ -891,7 +891,7 @@ void funKey(GLFWwindow* window, int key, int scancode, int action, int mods) {
                     lastAngleX_ovni = angleX_ovni;
                 }
             break;
-        case GLFW_KEY_U:
+        case GLFW_KEY_A:
             if (action == GLFW_PRESS || action == GLFW_REPEAT)
                 if (!turn_ovniMovZ) {
                     leftright_mov = true;
@@ -904,7 +904,7 @@ void funKey(GLFWwindow* window, int key, int scancode, int action, int mods) {
                     lastAngleZ_ovni = angleZ_ovni;
                 }
             break;
-        case GLFW_KEY_I:
+        case GLFW_KEY_D:
             if (action == GLFW_PRESS || action == GLFW_REPEAT)
                 if (!turn_ovniMovZ) {
                     leftright_mov = false;
@@ -916,31 +916,6 @@ void funKey(GLFWwindow* window, int key, int scancode, int action, int mods) {
                     turn_ovniMovZ = false;
                     lastAngleZ_ovni = angleZ_ovni;
                 }
-            break;
-        case GLFW_KEY_W: // ####
-            if (action==GLFW_PRESS || action == GLFW_REPEAT) {
-                ws_mov += 5.0f;
-                //if (!fwbw_mov) fwbw_mov = true;
-            } /*else {
-                fwbw_mov = false;
-                lastAngleX_ovni = angleX_ovni;
-                lastTime_ovniX = glfwGetTime();
-            }*/
-            break;
-        case GLFW_KEY_S: // ####
-            if (action==GLFW_PRESS || action == GLFW_REPEAT) {
-                ws_mov -= 5.0f;
-            }
-            break;
-        case GLFW_KEY_A: // ####
-            if (action==GLFW_PRESS || action == GLFW_REPEAT) {
-                ad_mov += 5.0f;
-            }
-            break;
-        case GLFW_KEY_D: // ####
-            if (action==GLFW_PRESS || action == GLFW_REPEAT) {
-                ad_mov -= 5.0f;
-            }
             break;
         case GLFW_KEY_Q: // ####
             if (action==GLFW_PRESS || action == GLFW_REPEAT) {
