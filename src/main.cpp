@@ -36,7 +36,6 @@ void funPlanetStyle    ();
     Model sphere;
 
     Model capsula;
-    Model aro; //////
     Model cuerpo_sup;
     Model cuerpo_inf;
     Model circle;
@@ -180,6 +179,11 @@ void funPlanetStyle    ();
     //Activar o desactivar renderizacion de texturas
     bool texturasoff= false;
 
+    bool forwback_mov = false;
+    bool leftright_mov = false;
+    bool turn_ovniMovX = false;
+    bool turn_ovniMovZ = false;
+
     bool luzp5off=false;
 
     //OPCIONES PLANETA
@@ -222,10 +226,6 @@ void funPlanetStyle    ();
     glm::mat4 T_planeta = glm::translate(I, glm::vec3(0.0,0.2,0.0));
 
     glm::mat4 M_ovni;
-    bool forwback_mov = false;
-    bool leftright_mov = false;
-    bool turn_ovniMovX = false;
-    bool turn_ovniMovZ = false;
 
 
 // #####################################################################################################################
@@ -301,9 +301,8 @@ void configScene() {
     sphere.initModel("resources/models/sphere.obj");
 
     capsula.initModel("resources/models/capsula.obj");
-    aro.initModel("resources/models/aro.obj"); ////////
     cuerpo_sup.initModel("resources/models/cuerpo_sup.obj");
-    cuerpo_inf.initModel("resources/models/cuerpo_inf_newUVmapping.obj"); //cuerpo_inf_newUVmapping cuerpo_inf
+    cuerpo_inf.initModel("resources/models/cuerpo_inf_newUVmapping.obj");
     circle.initModel("resources/models/circle.obj");
     orbe.initModel("resources/models/orbe.obj");
     pieza1_pata.initModel("resources/models/pieza1_pata.obj");
@@ -316,7 +315,7 @@ void configScene() {
 
  // Imagenes (texturas)
     img1.initTexture("resources/textures/img1.png");
-    img8.initTexture("resources/textures/imgUfo_window3.png"); /*img8.png*/
+    img8.initTexture("resources/textures/imgUfo_window3.png");
     imgWindowEMIS.initTexture("resources/textures/imgUfo_window4.png");
 
     imgCSDIFF.initTexture("resources/textures/cuerpo_supS.png");
@@ -726,16 +725,9 @@ void setLights(glm::mat4 P, glm::mat4 V) {
     for(int i=0; i<NLP; i++) shaders.setLight("ulightP["+toString(i)+"]",lightP[i]);
     for(int i=0; i<NLF; i++) shaders.setLight("ulightF["+toString(i)+"]",lightF[i]);
 
-
-
     if(!luzp5off) {
         glm::mat4 Mp = glm::translate(I, lightP[5].position) * glm::scale(I, glm::vec3(0.1));
         drawObjectMat(sphere, mluz, P, V, Mp);
-    }
-
-    for(int i=0; i<NLF; i++) {
-        glm::mat4 M = glm::translate(I,lightF[i].position) * glm::scale(I,glm::vec3(0.025));
-        drawObjectMat(sphere, mluz, P, V, M);
     }
 
     lightF[0].position  = glm::vec3(M_ovni * glm::vec4(0.0, 1.0, 0.0, 1.0));
