@@ -5,7 +5,7 @@
 #include "Model.h"
 #include "Texture.h"
 
-const int PLANET_TYPES = 2;
+const int PLANET_SKINS = 4;
 
 // ===================================================
 
@@ -53,6 +53,7 @@ void funPlanetStyle    ();
 // Imagenes (texturas)
     Texture img1; // IMG Emisiva Nula
     Texture img8;
+    Texture imgWindowEMIS;
 
     //Cuerpo Superior Ovni
     Texture imgCSDIFF;
@@ -63,6 +64,7 @@ void funPlanetStyle    ();
     Texture imgCIDIFF;
     Texture imgCISPEC;
     Texture imgCINORM;
+    Texture imgCIEMIS;
 
     //Base Cuerpo Superior Ovni
     Texture imgCircleDIFF;
@@ -74,7 +76,13 @@ void funPlanetStyle    ();
     Texture imgPlanetDIFF;
     Texture imgPlanetSPEC;
     Texture imgPlanetNORM;
-    Texture imgPlanetEMIS;
+    Texture imgPlanetDIFF2;
+    Texture imgPlanetSPEC2;
+    Texture imgPlanetNORM2; ///
+    Texture imgPlanetEMIS2;
+    Texture imgPlanetDIFF3;
+    Texture imgPlanetNORM3;
+    Texture imgPlanetDIFF4;
 
     //Fondo
     Texture imgStarMapDIFF;
@@ -176,7 +184,7 @@ void funPlanetStyle    ();
     bool texturasoff= false;
 
     //OPCIONES PLANETA
-    int select_planet = 1; 
+    int select_planet = 1;
 
     //Intensidad de la luz
     float incLight = 1.0;
@@ -293,7 +301,7 @@ void configScene() {
     capsula.initModel("resources/models/capsula.obj");
     aro.initModel("resources/models/aro.obj"); ////////
     cuerpo_sup.initModel("resources/models/cuerpo_sup.obj");
-    cuerpo_inf.initModel("resources/models/cuerpo_inf.obj");
+    cuerpo_inf.initModel("resources/models/cuerpo_inf_newUVmapping.obj"); //cuerpo_inf_newUVmapping cuerpo_inf
     circle.initModel("resources/models/circle.obj");
     orbe.initModel("resources/models/orbe.obj");
     pieza1_pata.initModel("resources/models/pieza1_pata.obj");
@@ -306,26 +314,31 @@ void configScene() {
 
  // Imagenes (texturas)
     img1.initTexture("resources/textures/img1.png");
-    img8.initTexture("resources/textures/img8.png");
+    img8.initTexture("resources/textures/imgUfo_window3.png"); /*img8.png*/
+    imgWindowEMIS.initTexture("resources/textures/imgUfo_window4.png");
 
-    imgCSDIFF.initTexture("resources/textures/cuerpo_sup.png");
-    imgCSSPEC.initTexture("resources/textures/s.png"); //specularAO1
+    imgCSDIFF.initTexture("resources/textures/cuerpo_supS.png");
+    imgCSSPEC.initTexture("resources/textures/imgCS_spec4.png"); //specularAO1
     imgCSEMIS.initTexture("resources/textures/cuerpo_sup_emissive_y3.png");
 
-    imgCIDIFF.initTexture("resources/textures/texture.png"); //cuerpo_inf_metal
+    imgCIDIFF.initTexture("resources/textures/cuerpo_inf.jpg");//texture.png //cuerpo_inf_metal //6842-v7 //cuerpo_inf.jpg
     imgCISPEC.initTexture("resources/textures/cuerpo_inf_spec.png");
-    imgCINORM.initTexture("resources/textures/cuerpo_inf_norm.png");
+    imgCINORM.initTexture("resources/textures/imgCI_spec.png");
+    imgCIEMIS.initTexture("resources/textures/cuerpo_inf_emis2.jpg");
 
     imgCircleDIFF.initTexture("resources/textures/circle.jpg");
     imgCircleSPEC.initTexture("resources/textures/circle_spec.png");
     imgCircleNORM.initTexture("resources/textures/circle_normal.png");
     imgCircleEMIS.initTexture("resources/textures/circle_emiss_purple.jpg");
 
-
-    imgPlanetDIFF.initTexture("resources/textures/tierra.jpg");
-    imgPlanetSPEC.initTexture("resources/textures/tierra_spec2.png");
-    imgPlanetNORM.initTexture("resources/textures/tierra_normal.png");
-    imgPlanetEMIS.initTexture("resources/textures/tierra_citylights.jpg");
+    imgPlanetDIFF.initTexture("resources/textures/imgMars.jpg");
+    imgPlanetNORM.initTexture("resources/textures/imgMars_norm2.png");
+    imgPlanetDIFF2.initTexture("resources/textures/tierra.jpg");
+    imgPlanetSPEC2.initTexture("resources/textures/tierra_spec2.png");
+    imgPlanetEMIS2.initTexture("resources/textures/tierra_citylights.jpg");
+    imgPlanetDIFF3.initTexture("resources/textures/imgMoon.jpg");
+    imgPlanetNORM3.initTexture("resources/textures/imgMoon_norm.jpg");
+    imgPlanetDIFF4.initTexture("resources/textures/imgSun.jpg");
 
     imgStarMapDIFF.initTexture("resources/textures/starmap_4k.jpg");
     imgStarMapEMIS.initTexture("resources/textures/starmap_4k_emiss.jpg");
@@ -397,8 +410,8 @@ void configScene() {
     lightF[0].innerCutOff = 25.0; //20.0;
     lightF[0].outerCutOff = lightF[0].innerCutOff + 0.1; //1.0; //10.0;
     lightF[0].c0          = 1.0;
-    lightF[0].c1          = 0.09;
-    lightF[0].c2          = 0.032;
+    lightF[0].c1          = 0.03; //0.09;
+    lightF[0].c2          = 0.05; //0.032;
 
 
     lightF[1].position    = glm::vec3( 2.0,  2.0,  5.0);
@@ -444,7 +457,7 @@ void configScene() {
     texCuerpoSup.specular  = imgCSSPEC.getTexture();
     texCuerpoSup.emissive  = img1.getTexture(); //Modificable con tecla C
     texCuerpoSup.normal    = 0; //imgCSNORM.getTexture();
-    texCuerpoSup.shininess = 10; //32.0; //64.0;
+    texCuerpoSup.shininess = 1.0; //10.0; //32.0; //64.0;
 
     texCuerpoInf.diffuse   = imgCIDIFF.getTexture();
     texCuerpoInf.specular  = imgCISPEC.getTexture();
@@ -459,9 +472,9 @@ void configScene() {
     texCircle.shininess = 10.0;
 
     texPlanet.diffuse   = imgPlanetDIFF.getTexture();
-    texPlanet.specular  = imgPlanetSPEC.getTexture();
+    texPlanet.specular  = img1.getTexture();
     texPlanet.emissive  = img1.getTexture(); //Reaccion a tecla + -
-    texPlanet.normal    = 0; //imgPlanetNORM.getTexture();
+    texPlanet.normal    = imgPlanetNORM.getTexture();
     texPlanet.shininess = 32.0;
 
     texStars.diffuse   = imgStarMapDIFF.getTexture();
@@ -704,10 +717,10 @@ void drawSoporte(glm::mat4 P, glm::mat4 V, glm::mat4 M) {
 
 void drawOrbes(glm::mat4 P, glm::mat4 V, glm::mat4 M) {
 
-    drawObjectMat(orbe, mluz, P, V, M);
-    drawObjectMat(orbe, mluz, P, V, M * RY_90);
-    drawObjectMat(orbe, mluz, P, V, M * RY_90 * RY_90);
-    drawObjectMat(orbe, mluz, P, V, M * RY_90 * RY_90 * RY_90);
+    drawObjectMat(orbe, onoff == 1? mluz : cromo, P, V, M);
+    drawObjectMat(orbe, onoff == 1? mluz : cromo, P, V, M * RY_90);
+    drawObjectMat(orbe, onoff == 1? mluz : cromo, P, V, M * RY_90 * RY_90);
+    drawObjectMat(orbe, onoff == 1? mluz : cromo, P, V, M * RY_90 * RY_90 * RY_90);
 
 }
 
@@ -784,14 +797,7 @@ void funFramebufferSize(GLFWwindow* window, int width, int height) {
 void funKey(GLFWwindow* window, int key, int scancode, int action, int mods) {
 
     switch(key) {
-        case GLFW_KEY_4:
-            if (action==GLFW_PRESS) {
-                //funPlanetStyle();
-                select_planet++;
-                if (select_planet > PLANET_TYPES) select_planet = 0;
-            }
-            break;
-
+        case GLFW_KEY_4: if (action==GLFW_PRESS) funPlanetStyle(); break;
         case GLFW_KEY_3:
             if (action == GLFW_PRESS) {
                 turn_firstP = !turn_firstP;
@@ -823,7 +829,7 @@ void funKey(GLFWwindow* window, int key, int scancode, int action, int mods) {
         case GLFW_KEY_KP_ADD:
             if (action == GLFW_PRESS || action == GLFW_REPEAT) {
                 incLight += incLight < 10.0 ? 0.1 : 0.0;
-                if (incLight >= 0.2) texPlanet.emissive  = img1.getTexture();
+                if (incLight >= 0.2 && select_planet==2) texPlanet.emissive  = img1.getTexture();
 
                 lightD[0].ambient   = incLight * glm::vec3(0.1,  0.1, 0.1);
                 lightD[0].diffuse   = incLight * glm::vec3(0.7,  0.7, 0.7);
@@ -833,7 +839,7 @@ void funKey(GLFWwindow* window, int key, int scancode, int action, int mods) {
         case GLFW_KEY_KP_SUBTRACT:
             if (action == GLFW_PRESS || action == GLFW_REPEAT) {
                 incLight -= 0.1;
-                if (incLight < 0.2) texPlanet.emissive  = imgPlanetEMIS.getTexture();
+                if (incLight < 0.2 && select_planet==2) texPlanet.emissive  = imgPlanetEMIS2.getTexture();
 
                 lightD[0].ambient   = incLight * glm::vec3(0.1,  0.1, 0.1);
                 lightD[0].diffuse   = incLight * glm::vec3(0.7,  0.7, 0.7);
@@ -924,7 +930,7 @@ void funKey(GLFWwindow* window, int key, int scancode, int action, int mods) {
             break;
         case GLFW_KEY_E: // ####
             if (action==GLFW_PRESS || action == GLFW_REPEAT) {
-                altura_Ovni -= 0.1;
+                altura_Ovni -= altura_Ovni > 0.0 ? 0.1 : 0.0;
             }
             break;
         case GLFW_KEY_J: /////////////////////////
@@ -958,7 +964,9 @@ void funKey(GLFWwindow* window, int key, int scancode, int action, int mods) {
             if (action==GLFW_PRESS) {
                 turn_emiss = !turn_emiss;
                 texCuerpoSup.emissive = turn_emiss ? imgCSEMIS.getTexture() : img1.getTexture();
+                texCuerpoInf.emissive = turn_emiss ? imgCIEMIS.getTexture() : img1.getTexture();
                 texCircle.emissive = turn_emiss ? imgCircleEMIS.getTexture() : img1.getTexture();
+                texWindow.emissive = turn_emiss ? imgWindowEMIS.getTexture() : img1.getTexture();
             }
             break;
         case GLFW_KEY_F:
@@ -1049,14 +1057,33 @@ void funCursorPos(GLFWwindow* window, double xpos, double ypos) {
 
 void funPlanetStyle() {
 
-//    switch (select) {
-//        case 1: {
-//            imgPlanetDIFF.initTexture("resources/textures/tierra.jpg");
-//            imgPlanetSPEC.initTexture("resources/textures/tierra_spec.png");
-//            imgPlanetNORM.initTexture("resources/textures/tierra_normal.png");
-//            imgPlanetEMIS.initTexture("resources/textures/tierra_citylights.jpg");
-//            break;
-//        }
-//    }
+    select_planet++;
+    if (select_planet > PLANET_SKINS) select_planet = 1;
 
+    switch (select_planet) {
+        case 1:
+            texPlanet.diffuse   = imgPlanetDIFF.getTexture();
+            texPlanet.specular  = imgPlanetSPEC.getTexture();
+            texPlanet.normal    = imgPlanetNORM.getTexture();
+            texPlanet.emissive  = img1.getTexture();
+            break;
+        case 2:
+            texPlanet.diffuse   = imgPlanetDIFF2.getTexture();
+            texPlanet.specular  = imgPlanetSPEC2.getTexture();
+            texPlanet.normal    = 0;
+            texPlanet.emissive  = incLight < 0.2 ? imgPlanetEMIS2.getTexture() : img1.getTexture();
+            break;
+        case 3:
+            texPlanet.diffuse   = imgPlanetDIFF3.getTexture();
+            texPlanet.specular  = img1.getTexture();
+            texPlanet.normal    = imgPlanetNORM3.getTexture();
+            texPlanet.emissive  = img1.getTexture();
+            break;
+        case 4:
+            texPlanet.diffuse   = imgPlanetDIFF4.getTexture();
+            texPlanet.specular  = img1.getTexture();
+            texPlanet.normal    = 0;
+            texPlanet.emissive  = imgPlanetDIFF4.getTexture();
+            break;
+    }
 }
